@@ -1,6 +1,6 @@
 from datetime import datetime, time
 from typing import Optional, List, Dict, Any
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from app.models.equipment import EquipmentStatus, MaintenanceStatus
 
 
@@ -60,27 +60,22 @@ class EquipmentUpdate(BaseModel):
 
 
 class SpecificationOut(SpecificationSchema):
+    model_config = ConfigDict(from_attributes=True)
     id: str
-
-    class Config:
-        from_attributes = True
 
 
 class AccessPolicyOut(AccessPolicySchema):
+    model_config = ConfigDict(from_attributes=True)
     id: str
-
-    class Config:
-        from_attributes = True
 
 
 class AvailabilityRuleOut(AvailabilityRuleSchema):
+    model_config = ConfigDict(from_attributes=True)
     id: str
-
-    class Config:
-        from_attributes = True
 
 
 class EquipmentOut(EquipmentBase):
+    model_config = ConfigDict(from_attributes=True)
     id: str
     created_at: datetime
     updated_at: datetime
@@ -88,9 +83,6 @@ class EquipmentOut(EquipmentBase):
     laboratory_name: Optional[str] = None
     specifications: List[SpecificationOut] = []
     access_policy: Optional[AccessPolicyOut] = None
-
-    class Config:
-        from_attributes = True
 
 
 class EquipmentFilter(BaseModel):
@@ -113,6 +105,7 @@ class MaintenanceCreate(BaseModel):
 
 
 class MaintenanceOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
     id: str
     equipment_id: str
     equipment_name: Optional[str] = None
@@ -122,6 +115,3 @@ class MaintenanceOut(BaseModel):
     status: MaintenanceStatus
     notes: Optional[str] = None
     created_at: datetime
-
-    class Config:
-        from_attributes = True

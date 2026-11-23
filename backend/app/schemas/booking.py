@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import Optional, List, Dict, Any
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from app.models.booking import BookingStatus, ApprovalDecision
 
 
@@ -11,12 +11,10 @@ class ProjectRequestCreate(BaseModel):
 
 
 class ProjectRequestOut(ProjectRequestCreate):
+    model_config = ConfigDict(from_attributes=True)
     id: str
     student_id: str
     created_at: datetime
-
-    class Config:
-        from_attributes = True
 
 
 class BookingCreate(BaseModel):
@@ -30,6 +28,7 @@ class BookingCreate(BaseModel):
 
 
 class BookingOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
     id: str
     equipment_id: str
     equipment_name: Optional[str] = None
@@ -47,9 +46,6 @@ class BookingOut(BaseModel):
     project_title: Optional[str] = None
     created_at: datetime
     updated_at: datetime
-
-    class Config:
-        from_attributes = True
 
 
 class BookingApprovalRequest(BaseModel):

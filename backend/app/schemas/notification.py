@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import Optional, Dict, Any
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from app.models.notification import NotificationType
 
 
@@ -13,6 +13,7 @@ class NotificationCreate(BaseModel):
 
 
 class NotificationOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
     id: str
     user_id: str
     title: str
@@ -21,9 +22,6 @@ class NotificationOut(BaseModel):
     is_read: bool
     metadata_json: Optional[str] = None
     created_at: datetime
-
-    class Config:
-        from_attributes = True
 
 
 class NotificationUpdate(BaseModel):

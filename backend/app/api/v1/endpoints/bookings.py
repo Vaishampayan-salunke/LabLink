@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status, Query
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import desc
 
 from app.db.session import get_db
@@ -153,9 +153,17 @@ def get_my_bookings(
     current_user: User = Depends(get_current_user),
 ):
     """Retrieve all bookings created by the current user."""
-    bookings = db.query(Booking).filter(
-        Booking.student_id == current_user.id
-    ).order_by(desc(Booking.created_at)).all()
+    bookings = (
+        db.query(Booking)
+        .options(
+            joinedload(Booking.equipment).joinedload(Equipment.department),
+            joinedload(Booking.equipment).joinedload(Equipment.laboratory),
+            joinedload(Booking.project_request),
+        )
+        .filter(Booking.student_id == current_user.id)
+        .order_by(desc(Booking.created_at))
+        .all()
+    )
 
     result: List[BookingOut] = []
     for b in bookings:

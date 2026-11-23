@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import desc
 
 from app.db.session import get_db
@@ -26,7 +26,16 @@ def get_pending_approvals(
     Retrieve all pending booking requests for the faculty member's department equipment.
     Administrators can view all institution-wide pending requests.
     """
-    query = db.query(Booking).filter(Booking.status == BookingStatus.PENDING)
+    query = (
+        db.query(Booking)
+        .options(
+            joinedload(Booking.equipment).joinedload(Equipment.department),
+            joinedload(Booking.equipment).joinedload(Equipment.laboratory),
+            joinedload(Booking.student),
+            joinedload(Booking.project_request),
+        )
+        .filter(Booking.status == BookingStatus.PENDING)
+    )
 
     if current_user.role == UserRole.FACULTY and current_user.department_id:
         dept_equipment_ids = [

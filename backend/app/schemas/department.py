@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import Optional, List
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 
 class DepartmentBase(BaseModel):
@@ -40,18 +40,14 @@ class LaboratoryUpdate(BaseModel):
 
 
 class LaboratoryOut(LaboratoryBase):
+    model_config = ConfigDict(from_attributes=True)
     id: str
     department_id: str
     created_at: datetime
 
-    class Config:
-        from_attributes = True
-
 
 class DepartmentOut(DepartmentBase):
+    model_config = ConfigDict(from_attributes=True)
     id: str
     created_at: datetime
     laboratories: List[LaboratoryOut] = []
-
-    class Config:
-        from_attributes = True

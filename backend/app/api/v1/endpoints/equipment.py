@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status, Query
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload, selectinload
 from sqlalchemy import or_
 
 from app.db.session import get_db
@@ -45,7 +45,12 @@ def list_equipment(
     Search and filter equipment catalogue across departments and laboratories.
     Returns real PostgreSQL records with pagination.
     """
-    query = db.query(Equipment)
+    query = db.query(Equipment).options(
+        joinedload(Equipment.department),
+        joinedload(Equipment.laboratory),
+        selectinload(Equipment.specifications),
+        joinedload(Equipment.access_policy),
+    )
 
     if search:
         s = f"%{search}%"
@@ -86,7 +91,17 @@ def list_equipment(
 @router.get("/{id}", response_model=EquipmentOut)
 def get_equipment_detail(id: str, db: Session = Depends(get_db)):
     """Retrieve equipment by ID with complete specifications and access policies."""
-    eq = db.query(Equipment).filter(Equipment.id == id).first()
+    eq = (
+        db.query(Equipment)
+        .options(
+            joinedload(Equipment.department),
+            joinedload(Equipment.laboratory),
+            selectinload(Equipment.specifications),
+            joinedload(Equipment.access_policy),
+        )
+        .filter(Equipment.id == id)
+        .first()
+    )
     if not eq:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
