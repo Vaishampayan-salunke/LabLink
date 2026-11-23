@@ -47,7 +47,12 @@ export const LoginPage: React.FC = () => {
         navigate("/student/dashboard");
       }
     } catch (err: any) {
-      setError(err.message || "Invalid institutional credentials. Please check your email and password.");
+      const msg = err.message || "";
+      if (msg.toLowerCase().includes("failed to fetch") || err.name === "TypeError") {
+        setError("Cannot reach backend server. If using Render free tier, the backend may take ~30 seconds to wake up from sleep. Please wait a moment and try again.");
+      } else {
+        setError(msg || "Invalid institutional credentials. Please check your email and password.");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -69,7 +74,12 @@ export const LoginPage: React.FC = () => {
         navigate("/student/dashboard");
       }
     } catch (err: any) {
-      setError(err.message || "Demo authentication failed.");
+      const msg = err.message || "";
+      if (msg.toLowerCase().includes("failed to fetch") || err.name === "TypeError") {
+        setError("Cannot reach backend server. If using Render free tier, the backend may take ~30 seconds to wake up from sleep. Please wait a moment and try again.");
+      } else {
+        setError(msg || "Demo authentication failed.");
+      }
     } finally {
       setIsLoading(false);
     }

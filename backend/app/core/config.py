@@ -40,6 +40,19 @@ class Settings(BaseSettings):
         "http://localhost:8000",
     ]
     
+    @field_validator("CORS_ORIGINS", mode="before")
+    @classmethod
+    def assemble_cors_origins(cls, v):
+        if isinstance(v, str):
+            if v.startswith("[") and v.endswith("]"):
+                import json
+                try:
+                    return json.loads(v)
+                except Exception:
+                    pass
+            return [i.strip() for i in v.split(",") if i.strip()]
+        return v
+    
     # SMTP / Email
     SMTP_ENABLED: bool = False
     SMTP_HOST: Optional[str] = None

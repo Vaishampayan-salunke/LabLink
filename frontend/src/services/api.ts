@@ -10,7 +10,20 @@ import {
   EquipmentMatchResult,
 } from "@/types";
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || "/api/v1";
+// Normalize base URL: strip trailing slashes and ensure /api/v1 is appended if user passed host URL
+const getApiBase = (): string => {
+  let base = (import.meta.env.VITE_API_BASE_URL as string) || "";
+  base = base.trim().replace(/\/+$/, "");
+  if (!base) {
+    return "/api/v1";
+  }
+  if (!base.endsWith("/api/v1")) {
+    base = `${base}/api/v1`;
+  }
+  return base;
+};
+
+const API_BASE = getApiBase();
 
 class ApiClient {
   private getAuthHeader(): HeadersInit {

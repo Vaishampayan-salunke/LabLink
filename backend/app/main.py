@@ -46,9 +46,11 @@ app = FastAPI(
 )
 
 # Configure CORS
+# Use allow_origin_regex to universally permit all onrender.com domains and local environments
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"] if settings.ENVIRONMENT == "development" else settings.CORS_ORIGINS,
+    allow_origins=settings.CORS_ORIGINS if settings.CORS_ORIGINS else ["*"],
+    allow_origin_regex=r"^https?://.*",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
