@@ -21,6 +21,12 @@ router = APIRouter()
 @router.get("", response_model=List[DepartmentOut])
 def list_departments(db: Session = Depends(get_db)):
     """List all academic departments with nested laboratories."""
+    if db.query(Department).count() == 0:
+        try:
+            from app.db.seed import seed_database
+            seed_database()
+        except Exception:
+            pass
     return db.query(Department).order_by(Department.name).all()
 
 

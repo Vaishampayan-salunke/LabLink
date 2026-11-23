@@ -45,7 +45,7 @@ export const EquipmentCatalogue: React.FC = () => {
     setLoading(true);
     try {
       const data = await api.getEquipment({
-        search: search || undefined,
+        search: search.trim() || undefined,
         department_id: selectedDept || undefined,
         category: selectedCategory || undefined,
       });
@@ -57,9 +57,13 @@ export const EquipmentCatalogue: React.FC = () => {
     }
   };
 
+  // Debounced auto-search when typing or changing filters
   useEffect(() => {
-    loadEquipment();
-  }, [selectedDept, selectedCategory]);
+    const timer = setTimeout(() => {
+      loadEquipment();
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [search, selectedDept, selectedCategory]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();

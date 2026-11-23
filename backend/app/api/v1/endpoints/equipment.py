@@ -45,6 +45,13 @@ def list_equipment(
     Search and filter equipment catalogue across departments and laboratories.
     Returns real PostgreSQL records with pagination.
     """
+    if db.query(Equipment).count() == 0:
+        try:
+            from app.db.seed import seed_database
+            seed_database()
+        except Exception:
+            pass
+
     query = db.query(Equipment).options(
         joinedload(Equipment.department),
         joinedload(Equipment.laboratory),

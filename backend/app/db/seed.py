@@ -28,136 +28,85 @@ def seed_database():
     db = SessionLocal()
 
     try:
-        # Check if already seeded
-        if db.query(User).filter(User.email == "admin@lablink.demo").first():
-            print("Database already contains seed data. Skipping re-seed.")
-            return
-
         now = datetime.now(timezone.utc)
 
         # ------------------------------------------------------------------ #
-        # 1. Departments
+        # 1. Departments (Idempotent Get or Create)
         # ------------------------------------------------------------------ #
-        dept_cse = Department(name="Computer Science & Engineering", code="CSE", description="Computing infrastructure, AI clusters, and software systems.")
-        dept_ece = Department(name="Electronics & Communication Engineering", code="ECE", description="Embedded systems, VLSI design, RF, and communications.")
-        dept_eee = Department(name="Electrical & Electronics Engineering", code="EEE", description="Power electronics, renewable energy, and control instrumentation.")
-        dept_mech = Department(name="Mechanical & Robotics Engineering", code="MECH", description="Additive manufacturing, robotics actuators, and CNC machining.")
-        dept_bio = Department(name="Biotechnology & Chemical Engineering", code="BIO", description="Spectroscopy, chromatography, and biological workstations.")
+        def get_or_create_dept(name: str, code: str, desc: str) -> Department:
+            dept = db.query(Department).filter(Department.code == code).first()
+            if not dept:
+                dept = Department(name=name, code=code, description=desc)
+                db.add(dept)
+                db.flush()
+            return dept
 
-        db.add_all([dept_cse, dept_ece, dept_eee, dept_mech, dept_bio])
-        db.flush()
-
-        # ------------------------------------------------------------------ #
-        # 2. Users
-        # ------------------------------------------------------------------ #
-        admin_user = User(
-            email="admin@lablink.demo",
-            hashed_password=get_password_hash("LabLink@Demo2026"),
-            full_name="Dr. Arthur Vance (Dean of Labs)",
-            role=UserRole.ADMIN,
-            is_active=True,
-        )
-        faculty_ece = User(
-            email="faculty.ece@lablink.demo",
-            hashed_password=get_password_hash("LabLink@Faculty2026"),
-            full_name="Prof. Elena Rostova",
-            role=UserRole.FACULTY,
-            department_id=dept_ece.id,
-            is_active=True,
-        )
-        faculty_cse = User(
-            email="faculty.cse@lablink.demo",
-            hashed_password=get_password_hash("LabLink@Faculty2026"),
-            full_name="Prof. David Chen",
-            role=UserRole.FACULTY,
-            department_id=dept_cse.id,
-            is_active=True,
-        )
-        faculty_eee = User(
-            email="faculty.eee@lablink.demo",
-            hashed_password=get_password_hash("LabLink@Faculty2026"),
-            full_name="Prof. Sarah Okonkwo",
-            role=UserRole.FACULTY,
-            department_id=dept_eee.id,
-            is_active=True,
-        )
-        student_alex = User(
-            email="student.alex@lablink.demo",
-            hashed_password=get_password_hash("LabLink@Student2026"),
-            full_name="Alex Rivera",
-            role=UserRole.STUDENT,
-            department_id=dept_ece.id,
-            student_id="STU-2026-081",
-            is_active=True,
-        )
-        student_priya = User(
-            email="student.priya@lablink.demo",
-            hashed_password=get_password_hash("LabLink@Student2026"),
-            full_name="Priya Sharma",
-            role=UserRole.STUDENT,
-            department_id=dept_cse.id,
-            student_id="STU-2026-142",
-            is_active=True,
-        )
-        student_jordan = User(
-            email="student.jordan@lablink.demo",
-            hashed_password=get_password_hash("LabLink@Student2026"),
-            full_name="Jordan Hayes",
-            role=UserRole.STUDENT,
-            department_id=dept_mech.id,
-            student_id="STU-2026-219",
-            is_active=True,
-        )
-        student_rafi = User(
-            email="student.rafi@lablink.demo",
-            hashed_password=get_password_hash("LabLink@Student2026"),
-            full_name="Rafi Hasan",
-            role=UserRole.STUDENT,
-            department_id=dept_eee.id,
-            student_id="STU-2026-305",
-            is_active=True,
-        )
-
-        db.add_all([admin_user, faculty_ece, faculty_cse, faculty_eee,
-                    student_alex, student_priya, student_jordan, student_rafi])
-        db.flush()
+        dept_cse = get_or_create_dept("Computer Science & Engineering", "CSE", "Computing infrastructure, AI clusters, and software systems.")
+        dept_ece = get_or_create_dept("Electronics & Communication Engineering", "ECE", "Embedded systems, VLSI design, RF, and communications.")
+        dept_eee = get_or_create_dept("Electrical & Electronics Engineering", "EEE", "Power electronics, renewable energy, and control instrumentation.")
+        dept_mech = get_or_create_dept("Mechanical & Robotics Engineering", "MECH", "Additive manufacturing, robotics actuators, and CNC machining.")
+        dept_bio = get_or_create_dept("Biotechnology & Chemical Engineering", "BIO", "Spectroscopy, chromatography, and biological workstations.")
 
         # ------------------------------------------------------------------ #
-        # 3. Laboratories
+        # 2. Users (Idempotent Get or Create with Guaranteed Password Sync)
         # ------------------------------------------------------------------ #
-        lab_iot = Laboratory(
-            department_id=dept_ece.id, name="Advanced IoT & Embedded Systems Lab",
-            room_number="ECE-302", building="Edison Hall",
-            operating_hours="08:30 - 18:30", faculty_coordinator_id=faculty_ece.id,
-        )
-        lab_ai = Laboratory(
-            department_id=dept_cse.id, name="AI & High-Performance Computing Lab",
-            room_number="CSE-415", building="Turing Complex",
-            operating_hours="08:00 - 20:00", faculty_coordinator_id=faculty_cse.id,
-        )
-        lab_robotics = Laboratory(
-            department_id=dept_mech.id, name="Robotics & Digital Prototyping Lab",
-            room_number="ME-108", building="Faraday Pavilion",
-            operating_hours="09:00 - 17:30",
-        )
-        lab_instrumentation = Laboratory(
-            department_id=dept_eee.id, name="Precision Instrumentation & Measurements Lab",
-            room_number="EEE-204", building="Tesla Tower",
-            operating_hours="08:30 - 18:00",
-        )
-        lab_bio = Laboratory(
-            department_id=dept_bio.id, name="Bioprocess & Analytical Chemistry Lab",
-            room_number="BIO-101", building="Franklin Science Centre",
-            operating_hours="09:00 - 17:00",
-        )
-        lab_vlsi = Laboratory(
-            department_id=dept_ece.id, name="VLSI Design & Verification Lab",
-            room_number="ECE-205", building="Edison Hall",
-            operating_hours="09:00 - 18:00", faculty_coordinator_id=faculty_ece.id,
-        )
+        def get_or_create_user(email: str, password: str, full_name: str, role: UserRole, department_id: str = None, student_id: str = None) -> User:
+            u = db.query(User).filter(User.email == email).first()
+            if not u:
+                u = User(
+                    email=email,
+                    hashed_password=get_password_hash(password),
+                    full_name=full_name,
+                    role=role,
+                    department_id=department_id,
+                    student_id=student_id,
+                    is_active=True,
+                )
+                db.add(u)
+                db.flush()
+            else:
+                u.hashed_password = get_password_hash(password)
+                u.is_active = True
+                if department_id and not u.department_id:
+                    u.department_id = department_id
+                if student_id and not u.student_id:
+                    u.student_id = student_id
+                db.flush()
+            return u
 
-        db.add_all([lab_iot, lab_ai, lab_robotics, lab_instrumentation, lab_bio, lab_vlsi])
-        db.flush()
+        admin_user = get_or_create_user("admin@lablink.demo", "LabLink@Demo2026", "Dr. Arthur Vance (Dean of Labs)", UserRole.ADMIN)
+        faculty_ece = get_or_create_user("faculty.ece@lablink.demo", "LabLink@Faculty2026", "Prof. Elena Rostova", UserRole.FACULTY, dept_ece.id)
+        faculty_cse = get_or_create_user("faculty.cse@lablink.demo", "LabLink@Faculty2026", "Prof. David Chen", UserRole.FACULTY, dept_cse.id)
+        faculty_eee = get_or_create_user("faculty.eee@lablink.demo", "LabLink@Faculty2026", "Prof. Sarah Okonkwo", UserRole.FACULTY, dept_eee.id)
+        student_alex = get_or_create_user("student.alex@lablink.demo", "LabLink@Student2026", "Alex Rivera", UserRole.STUDENT, dept_ece.id, "STU-2026-081")
+        student_priya = get_or_create_user("student.priya@lablink.demo", "LabLink@Student2026", "Priya Sharma", UserRole.STUDENT, dept_cse.id, "STU-2026-142")
+        student_jordan = get_or_create_user("student.jordan@lablink.demo", "LabLink@Student2026", "Jordan Hayes", UserRole.STUDENT, dept_mech.id, "STU-2026-219")
+        student_rafi = get_or_create_user("student.rafi@lablink.demo", "LabLink@Student2026", "Rafi Hasan", UserRole.STUDENT, dept_eee.id, "STU-2026-305")
+
+        # ------------------------------------------------------------------ #
+        # 3. Laboratories (Idempotent Get or Create)
+        # ------------------------------------------------------------------ #
+        def get_or_create_lab(dept_id: str, name: str, room: str, building: str, hours: str, coord_id: str = None) -> Laboratory:
+            lab = db.query(Laboratory).filter(Laboratory.department_id == dept_id, Laboratory.name == name).first()
+            if not lab:
+                lab = Laboratory(
+                    department_id=dept_id,
+                    name=name,
+                    room_number=room,
+                    building=building,
+                    operating_hours=hours,
+                    faculty_coordinator_id=coord_id,
+                )
+                db.add(lab)
+                db.flush()
+            return lab
+
+        lab_iot = get_or_create_lab(dept_ece.id, "Advanced IoT & Embedded Systems Lab", "ECE-302", "Edison Hall", "08:30 - 18:30", faculty_ece.id)
+        lab_ai = get_or_create_lab(dept_cse.id, "AI & High-Performance Computing Lab", "CSE-415", "Turing Complex", "08:00 - 20:00", faculty_cse.id)
+        lab_robotics = get_or_create_lab(dept_mech.id, "Robotics & Digital Prototyping Lab", "ME-108", "Faraday Pavilion", "09:00 - 17:30")
+        lab_instrumentation = get_or_create_lab(dept_eee.id, "Precision Instrumentation & Measurements Lab", "EEE-204", "Tesla Tower", "08:30 - 18:00")
+        lab_bio = get_or_create_lab(dept_bio.id, "Bioprocess & Analytical Chemistry Lab", "BIO-101", "Franklin Science Centre", "09:00 - 17:00")
+        lab_vlsi = get_or_create_lab(dept_ece.id, "VLSI Design & Verification Lab", "ECE-205", "Edison Hall", "09:00 - 18:00", faculty_ece.id)
 
         # ------------------------------------------------------------------ #
         # 4. Equipment catalogue – 28 items
@@ -443,160 +392,167 @@ def seed_database():
 
         created_equipments = []
         for eq_data in equipments_data:
-            eq = Equipment(
-                department_id=eq_data["dept"].id,
-                laboratory_id=eq_data["lab"].id,
-                name=eq_data["name"],
-                category=eq_data["category"],
-                model_number=eq_data["model"],
-                serial_number=eq_data["serial"],
-                description=eq_data["desc"],
-                image_url=eq_data["image"],
-                status=eq_data["status"],
-                is_restricted=eq_data["is_restricted"],
-                total_quantity=2,
-                available_quantity=2 if eq_data["status"] == EquipmentStatus.AVAILABLE else 0,
-            )
-            db.add(eq)
-            db.flush()
+            eq = db.query(Equipment).filter(Equipment.serial_number == eq_data["serial"]).first()
+            if not eq:
+                eq = Equipment(
+                    department_id=eq_data["dept"].id,
+                    laboratory_id=eq_data["lab"].id,
+                    name=eq_data["name"],
+                    category=eq_data["category"],
+                    model_number=eq_data["model"],
+                    serial_number=eq_data["serial"],
+                    description=eq_data["desc"],
+                    image_url=eq_data["image"],
+                    status=eq_data["status"],
+                    is_restricted=eq_data["is_restricted"],
+                    total_quantity=2,
+                    available_quantity=2 if eq_data["status"] == EquipmentStatus.AVAILABLE else 0,
+                )
+                db.add(eq)
+                db.flush()
+
+                for s_name, s_val in eq_data["specs"]:
+                    spec = EquipmentSpecification(equipment_id=eq.id, spec_name=s_name, spec_value=s_val)
+                    db.add(spec)
+
+                pol = EquipmentAccessPolicy(
+                    equipment_id=eq.id,
+                    allowed_roles="STUDENT,FACULTY,ADMIN",
+                    max_booking_hours=eq_data["max_hours"],
+                    requires_approval=eq_data["requires_approval"],
+                    auto_approve_eligible=not eq_data["requires_approval"],
+                )
+                db.add(pol)
+
+                # Availability rules Mon-Sat 09:00-18:00
+                for day in range(6):
+                    rule = AvailabilityRule(
+                        equipment_id=eq.id,
+                        day_of_week=day,
+                        start_time=time(9, 0),
+                        end_time=time(18, 0),
+                        is_available=True,
+                    )
+                    db.add(rule)
+
+                # Create 2 EquipmentUnits with QR tokens per equipment
+                for unit_num in range(1, 3):
+                    serial_base = eq_data["serial"].replace("-", "")
+                    unit = EquipmentUnit(
+                        equipment_id=eq.id,
+                        unit_serial=f"{eq_data['serial']}-U{unit_num:02d}",
+                        qr_code_token=str(uuid.uuid4()).replace("-", ""),
+                        is_functional=eq_data["status"] != EquipmentStatus.MAINTENANCE,
+                        is_available=eq_data["status"] == EquipmentStatus.AVAILABLE,
+                    )
+                    db.add(unit)
+
             created_equipments.append(eq)
 
-            for s_name, s_val in eq_data["specs"]:
-                spec = EquipmentSpecification(equipment_id=eq.id, spec_name=s_name, spec_value=s_val)
-                db.add(spec)
+        db.flush()
 
-            pol = EquipmentAccessPolicy(
-                equipment_id=eq.id,
-                allowed_roles="STUDENT,FACULTY,ADMIN",
-                max_booking_hours=eq_data["max_hours"],
-                requires_approval=eq_data["requires_approval"],
-                auto_approve_eligible=not eq_data["requires_approval"],
+        # ------------------------------------------------------------------ #
+        # ------------------------------------------------------------------ #
+        # 5. Project requests & bookings (if not already present)
+        # ------------------------------------------------------------------ #
+        if db.query(Booking).count() == 0 and len(created_equipments) >= 20:
+            project_alex = ProjectRequest(
+                student_id=student_alex.id,
+                title="Autonomous Precision Irrigation Telemetry Node",
+                description="Edge-based IoT solar mesh using ESP32, environmental sensors, and LoRaWAN backhaul for agricultural soil monitoring.",
+                deadline=now + timedelta(days=20),
             )
-            db.add(pol)
+            db.add(project_alex)
 
-            # Availability rules Mon-Sat 09:00-18:00
-            for day in range(6):
-                rule = AvailabilityRule(
-                    equipment_id=eq.id,
-                    day_of_week=day,
-                    start_time=time(9, 0),
-                    end_time=time(18, 0),
-                    is_available=True,
-                )
-                db.add(rule)
+            project_priya = ProjectRequest(
+                student_id=student_priya.id,
+                title="Federated Learning on Edge AI Cluster",
+                description="Federated model training across Jetson Orin Nano devices with privacy-preserving aggregation.",
+                deadline=now + timedelta(days=35),
+            )
+            db.add(project_priya)
+            db.flush()
 
-            # Create 2 EquipmentUnits with QR tokens per equipment
-            for unit_num in range(1, 3):
-                serial_base = eq_data["serial"].replace("-", "")
-                unit = EquipmentUnit(
-                    equipment_id=eq.id,
-                    unit_serial=f"{eq_data['serial']}-U{unit_num:02d}",
-                    qr_code_token=str(uuid.uuid4()).replace("-", ""),
-                    is_functional=eq_data["status"] != EquipmentStatus.MAINTENANCE,
-                    is_available=eq_data["status"] == EquipmentStatus.AVAILABLE,
-                )
-                db.add(unit)
+            # Confirmed booking
+            booking_alex = Booking(
+                equipment_id=created_equipments[0].id,  # ESP32
+                student_id=student_alex.id,
+                project_request_id=project_alex.id,
+                start_time=now + timedelta(days=1, hours=2),
+                end_time=now + timedelta(days=1, hours=5),
+                status=BookingStatus.CONFIRMED,
+                purpose="Firmware flashing and low-power sleep profiling.",
+            )
+            db.add(booking_alex)
 
-        db.flush()
+            # Pending booking (awaiting faculty approval)
+            booking_pending = Booking(
+                equipment_id=created_equipments[6].id,  # FPGA
+                student_id=student_alex.id,
+                project_request_id=project_alex.id,
+                start_time=now + timedelta(days=2, hours=1),
+                end_time=now + timedelta(days=2, hours=4),
+                status=BookingStatus.PENDING,
+                purpose="Synthesis and implementation of hardware acceleration filters.",
+            )
+            db.add(booking_pending)
 
-        # ------------------------------------------------------------------ #
-        # 5. Project requests & bookings
-        # ------------------------------------------------------------------ #
-        project_alex = ProjectRequest(
-            student_id=student_alex.id,
-            title="Autonomous Precision Irrigation Telemetry Node",
-            description="Edge-based IoT solar mesh using ESP32, environmental sensors, and LoRaWAN backhaul for agricultural soil monitoring.",
-            deadline=now + timedelta(days=20),
-        )
-        db.add(project_alex)
+            # Priya's AI booking
+            booking_priya = Booking(
+                equipment_id=created_equipments[10].id,  # Jetson Orin Nano
+                student_id=student_priya.id,
+                project_request_id=project_priya.id,
+                start_time=now + timedelta(days=3, hours=4),
+                end_time=now + timedelta(days=3, hours=8),
+                status=BookingStatus.PENDING,
+                purpose="Benchmarking federated learning inference on edge TPU.",
+            )
+            db.add(booking_priya)
 
-        project_priya = ProjectRequest(
-            student_id=student_priya.id,
-            title="Federated Learning on Edge AI Cluster",
-            description="Federated model training across Jetson Orin Nano devices with privacy-preserving aggregation.",
-            deadline=now + timedelta(days=35),
-        )
-        db.add(project_priya)
-        db.flush()
-
-        # Confirmed booking
-        booking_alex = Booking(
-            equipment_id=created_equipments[0].id,  # ESP32
-            student_id=student_alex.id,
-            project_request_id=project_alex.id,
-            start_time=now + timedelta(days=1, hours=2),
-            end_time=now + timedelta(days=1, hours=5),
-            status=BookingStatus.CONFIRMED,
-            purpose="Firmware flashing and low-power sleep profiling.",
-        )
-        db.add(booking_alex)
-
-        # Pending booking (awaiting faculty approval)
-        booking_pending = Booking(
-            equipment_id=created_equipments[6].id,  # FPGA
-            student_id=student_alex.id,
-            project_request_id=project_alex.id,
-            start_time=now + timedelta(days=2, hours=1),
-            end_time=now + timedelta(days=2, hours=4),
-            status=BookingStatus.PENDING,
-            purpose="Synthesis and implementation of hardware acceleration filters.",
-        )
-        db.add(booking_pending)
-
-        # Priya's AI booking
-        booking_priya = Booking(
-            equipment_id=created_equipments[10].id,  # Jetson Orin Nano
-            student_id=student_priya.id,
-            project_request_id=project_priya.id,
-            start_time=now + timedelta(days=3, hours=4),
-            end_time=now + timedelta(days=3, hours=8),
-            status=BookingStatus.PENDING,
-            purpose="Benchmarking federated learning inference on edge TPU.",
-        )
-        db.add(booking_priya)
-
-        # Jordan's robotics booking
-        booking_jordan = Booking(
-            equipment_id=created_equipments[19].id,  # UR5e Robot Arm
-            student_id=student_jordan.id,
-            start_time=now + timedelta(days=4, hours=1),
-            end_time=now + timedelta(days=4, hours=4),
-            status=BookingStatus.PENDING,
-            purpose="Pick-and-place task programming for assembly automation study.",
-        )
-        db.add(booking_jordan)
+            # Jordan's robotics booking
+            booking_jordan = Booking(
+                equipment_id=created_equipments[19].id,  # UR5e Robot Arm
+                student_id=student_jordan.id,
+                start_time=now + timedelta(days=4, hours=1),
+                end_time=now + timedelta(days=4, hours=4),
+                status=BookingStatus.PENDING,
+                purpose="Pick-and-place task programming for assembly automation study.",
+            )
+            db.add(booking_jordan)
 
         # ------------------------------------------------------------------ #
         # 6. Maintenance record (PLC)
         # ------------------------------------------------------------------ #
-        plc_eq = created_equipments[16]  # Siemens PLC (index 16, 0-based)
-        maint_plc = MaintenanceRecord(
-            equipment_id=plc_eq.id,
-            scheduled_by_id=faculty_eee.id,
-            start_time=now - timedelta(days=1),
-            end_time=now + timedelta(days=3),
-            reason="Firmware security update and relay contact calibration.",
-            status=MaintenanceStatus.IN_PROGRESS,
-            notes="Vendor field technician scheduled for firmware flashing.",
-        )
-        db.add(maint_plc)
+        if db.query(MaintenanceRecord).count() == 0 and len(created_equipments) > 16:
+            plc_eq = created_equipments[16]  # Siemens PLC (index 16, 0-based)
+            maint_plc = MaintenanceRecord(
+                equipment_id=plc_eq.id,
+                scheduled_by_id=faculty_eee.id,
+                start_time=now - timedelta(days=1),
+                end_time=now + timedelta(days=3),
+                reason="Firmware security update and relay contact calibration.",
+                status=MaintenanceStatus.IN_PROGRESS,
+                notes="Vendor field technician scheduled for firmware flashing.",
+            )
+            db.add(maint_plc)
 
         # ------------------------------------------------------------------ #
         # 7. Notifications
         # ------------------------------------------------------------------ #
-        for user, msg in [
-            (student_alex, "Your student profile STU-2026-081 is active. Discover equipment and reserve lab slots."),
-            (student_priya, "Welcome Priya! Explore AI & HPC equipment in the CSE department."),
-            (student_jordan, "Welcome Jordan! Robotics Lab resources are now available for booking."),
-            (faculty_ece, "ECE equipment catalogue has been updated with 9 new items."),
-        ]:
-            db.add(Notification(
-                user_id=user.id,
-                title="Welcome to LabLink",
-                message=msg,
-                type=NotificationType.SYSTEM,
-                is_read=False,
-            ))
+        if db.query(Notification).count() == 0:
+            for user, msg in [
+                (student_alex, "Your student profile STU-2026-081 is active. Discover equipment and reserve lab slots."),
+                (student_priya, "Welcome Priya! Explore AI & HPC equipment in the CSE department."),
+                (student_jordan, "Welcome Jordan! Robotics Lab resources are now available for booking."),
+                (faculty_ece, "ECE equipment catalogue has been updated with 9 new items."),
+            ]:
+                db.add(Notification(
+                    user_id=user.id,
+                    title="Welcome to LabLink",
+                    message=msg,
+                    type=NotificationType.SYSTEM,
+                    is_read=False,
+                ))
 
         db.commit()
         print(f"Database successfully seeded with {len(equipments_data)} equipment items and realistic academic data!")
