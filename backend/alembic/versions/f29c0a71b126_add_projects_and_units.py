@@ -19,6 +19,26 @@ depends_on = None
 
 def upgrade() -> None:
     conn = op.get_bind()
+
+    # Safely create PostgreSQL ENUM types if they do not already exist
+    if conn.dialect.name == "postgresql":
+        for type_name, values in [
+            ('projectstatus', ('Draft', 'Active', 'Completed', 'Archived')),
+            ('waitliststatus', ('Waiting', 'Notified', 'Accepted', 'Expired', 'Cancelled')),
+            ('faultseverity', ('LOW', 'MEDIUM', 'HIGH', 'CRITICAL')),
+            ('faultstatus', ('OPEN', 'IN_REVIEW', 'RESOLVED', 'DISMISSED')),
+            ('qreventtype', ('CHECK_IN', 'CHECK_OUT')),
+        ]:
+            val_str = ", ".join(f"'{v}'" for v in values)
+            conn.execute(sa.text(f"""
+                DO $$
+                BEGIN
+                    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = '{type_name}') THEN
+                        CREATE TYPE {type_name} AS ENUM ({val_str});
+                    END IF;
+                END$$;
+            """))
+
     inspector = reflection.Inspector.from_engine(conn)
     tables = inspector.get_table_names()
 
@@ -30,7 +50,7 @@ def upgrade() -> None:
             sa.Column('title', sa.String(length=255), nullable=False),
             sa.Column('description', sa.Text(), nullable=True),
             sa.Column('creator_id', sa.String(length=36), nullable=False),
-            sa.Column('status', sa.Enum('Draft', 'Active', 'Completed', 'Archived', name='projectstatus'), nullable=False),
+            sa.Column('status', sa.Enum('Draft', 'Active', 'Completed', 'Archived', name='projectstatus', create_type=False), nullable=False),
             sa.Column('created_at', sa.DateTime(timezone=True), nullable=False),
             sa.Column('updated_at', sa.DateTime(timezone=True), nullable=False),
             sa.ForeignKeyConstraint(['creator_id'], ['users.id'], ondelete='CASCADE'),
@@ -71,7 +91,7 @@ def upgrade() -> None:
             sa.Column('priority_score', sa.Float(), nullable=False),
             sa.Column('desired_start_time', sa.DateTime(timezone=True), nullable=False),
             sa.Column('desired_end_time', sa.DateTime(timezone=True), nullable=False),
-            sa.Column('status', sa.Enum('Waiting', 'Notified', 'Accepted', 'Expired', 'Cancelled', name='waitliststatus'), nullable=False),
+            sa.Column('status', sa.Enum('Waiting', 'Notified', 'Accepted', 'Expired', 'Cancelled', name='waitliststatus', create_type=False), nullable=False),
             sa.Column('created_at', sa.DateTime(timezone=True), nullable=False),
             sa.ForeignKeyConstraint(['equipment_id'], ['equipment.id'], ondelete='CASCADE'),
             sa.ForeignKeyConstraint(['user_id'], ['users.id'], ondelete='CASCADE'),
@@ -87,8 +107,8 @@ def upgrade() -> None:
             sa.Column('id', sa.String(length=36), nullable=False),
             sa.Column('equipment_id', sa.String(length=36), nullable=False),
             sa.Column('reporter_id', sa.String(length=36), nullable=False),
-            sa.Column('severity', sa.Enum('LOW', 'MEDIUM', 'HIGH', 'CRITICAL', name='faultseverity'), nullable=False),
-            sa.Column('status', sa.Enum('OPEN', 'IN_REVIEW', 'RESOLVED', 'DISMISSED', name='faultstatus'), nullable=False),
+            sa.Column('severity', sa.Enum('LOW', 'MEDIUM', 'HIGH', 'CRITICAL', name='faultseverity', create_type=False), nullable=False),
+            sa.Column('status', sa.Enum('OPEN', 'IN_REVIEW', 'RESOLVED', 'DISMISSED', name='faultstatus', create_type=False), nullable=False),
             sa.Column('description', sa.Text(), nullable=False),
             sa.Column('resolution_notes', sa.Text(), nullable=True),
             sa.Column('created_at', sa.DateTime(timezone=True), nullable=False),
@@ -126,7 +146,7 @@ def upgrade() -> None:
             sa.Column('booking_id', sa.String(length=36), nullable=False),
             sa.Column('equipment_unit_id', sa.String(length=36), nullable=False),
             sa.Column('user_id', sa.String(length=36), nullable=True),
-            sa.Column('event_type', sa.Enum('CHECK_IN', 'CHECK_OUT', name='qreventtype'), nullable=False),
+            sa.Column('event_type', sa.Enum('CHECK_IN', 'CHECK_OUT', name='qreventtype', create_type=False), nullable=False),
             sa.Column('condition_notes', sa.Text(), nullable=True),
             sa.Column('created_at', sa.DateTime(timezone=True), nullable=False),
             sa.ForeignKeyConstraint(['booking_id'], ['bookings.id'], ondelete='CASCADE'),
