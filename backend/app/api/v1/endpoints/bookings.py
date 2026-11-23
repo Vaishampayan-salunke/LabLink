@@ -76,9 +76,13 @@ def create_booking(
             detail=f"Slot conflict: {conflict_report.reason}"
         )
 
-    # 4. Determine status: restricted requires faculty approval
-    requires_approval = equipment.is_restricted or (policy and policy.requires_approval)
-    assigned_status = BookingStatus.PENDING if requires_approval else BookingStatus.CONFIRMED
+    # 4. Status determination:
+    # If equipment is restricted or a project allocation is attached, require Faculty Approval (PENDING).
+    # Standard unrestricted equipment auto-confirms (CONFIRMED) for immediate lab utilization.
+    if equipment.is_restricted or booking_in.project_title or booking_in.project_id:
+        assigned_status = BookingStatus.PENDING
+    else:
+        assigned_status = BookingStatus.CONFIRMED
 
     # 5. Create or link project request if provided
     project_req_id = None
@@ -106,34 +110,39 @@ def create_booking(
     db.commit()
     db.refresh(booking)
 
-    # 6. Send in-app notification
-    if assigned_status == BookingStatus.CONFIRMED:
+    # 6. Send in-app notification to student
+    create_notification(
+        db=db,
+        user_id=current_user.id,
+        title="Access Request Submitted",
+        message=f"Your booking request for {equipment.name} from {booking.start_time.strftime('%Y-%m-%d %H:%M')} has been submitted and is awaiting faculty review.",
+        notification_type=NotificationType.BOOKING_SUBMITTED,
+        metadata={"booking_id": booking.id, "equipment_id": equipment.id}
+    )
+
+    # 7. Notify faculty coordinators in the equipment's department
+    faculty_users = db.query(User).filter(
+        User.role == UserRole.FACULTY,
+        User.department_id == equipment.department_id
+    ).all()
+    for fac in faculty_users:
         create_notification(
             db=db,
-            user_id=current_user.id,
-            title="Booking Confirmed",
-            message=f"Your booking for {equipment.name} from {booking.start_time.strftime('%Y-%m-%d %H:%M')} has been automatically confirmed.",
-            notification_type=NotificationType.BOOKING_APPROVED,
-            metadata={"booking_id": booking.id, "equipment_id": equipment.id}
-        )
-    else:
-        create_notification(
-            db=db,
-            user_id=current_user.id,
-            title="Access Request Submitted",
-            message=f"Your booking request for restricted equipment {equipment.name} has been routed to faculty for approval.",
+            user_id=fac.id,
+            title="New Pending Equipment Approval",
+            message=f"Student {current_user.full_name} submitted an access request for {equipment.name} ({booking.start_time.strftime('%Y-%m-%d %H:%M')}).",
             notification_type=NotificationType.BOOKING_SUBMITTED,
-            metadata={"booking_id": booking.id, "equipment_id": equipment.id}
+            metadata={"booking_id": booking.id, "equipment_id": equipment.id, "student_id": current_user.id}
         )
-        # Notify faculty coordinator if assigned
-        if equipment.laboratory and equipment.laboratory.faculty_coordinator_id:
+    if equipment.laboratory and equipment.laboratory.faculty_coordinator_id:
+        if equipment.laboratory.faculty_coordinator_id not in [f.id for f in faculty_users]:
             create_notification(
                 db=db,
                 user_id=equipment.laboratory.faculty_coordinator_id,
                 title="New Pending Equipment Approval",
                 message=f"Student {current_user.full_name} submitted a project booking request for {equipment.name}.",
                 notification_type=NotificationType.BOOKING_SUBMITTED,
-                metadata={"booking_id": booking.id, "student_id": current_user.id}
+                metadata={"booking_id": booking.id, "equipment_id": equipment.id, "student_id": current_user.id}
             )
 
     out = BookingOut.model_validate(booking)

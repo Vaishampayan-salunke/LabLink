@@ -123,6 +123,7 @@ class ApiClient {
     if (params.status) query.append("status", params.status);
     if (params.is_restricted !== undefined) query.append("is_restricted", String(params.is_restricted));
     if (params.page) query.append("page", String(params.page));
+    query.append("page_size", "100");
 
     return this.request(`/equipment?${query.toString()}`);
   }
@@ -196,6 +197,10 @@ class ApiClient {
   // Approvals (Faculty)
   async getPendingApprovals(): Promise<Booking[]> {
     return this.request("/approvals/pending");
+  }
+
+  async getFacultyHistory(): Promise<Booking[]> {
+    return this.request("/approvals/history");
   }
 
   async approveBooking(id: string, comments?: string): Promise<Booking> {

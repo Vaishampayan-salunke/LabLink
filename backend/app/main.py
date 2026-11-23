@@ -92,6 +92,7 @@ def root():
 
 @app.api_route("/seed", methods=["GET", "POST"], tags=["Database"])
 @app.api_route(f"{settings.API_V1_STR}/seed", methods=["GET", "POST"], tags=["Database"])
+@app.api_route(f"{settings.API_V1_STR}/auth/seed", methods=["GET", "POST"], tags=["Database"])
 def global_seed_trigger():
     """
     Convenience endpoint to seed all 28 equipment items, laboratories, and demo accounts.

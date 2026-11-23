@@ -5,7 +5,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { formatDate } from "@/lib/utils";
-import { Users, Search, ShieldCheck, ShieldAlert, CheckCircle2 } from "lucide-react";
+import { Users, Search, ShieldCheck, ShieldAlert, CheckCircle2, UserCheck } from "lucide-react";
 
 export const AdminUsersPage: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
@@ -44,23 +44,28 @@ export const AdminUsersPage: React.FC = () => {
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      {/* Top Banner */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 sm:p-8 rounded-2xl bg-gradient-to-r from-[#10182B] via-[#151D30] to-[#1C2642] border border-[#1F2C4A] text-white shadow-md">
         <div>
-          <h1 className="text-2xl font-extrabold tracking-tight text-slate-900">
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#5945E8]/20 text-[#A394FF] text-xs font-semibold mb-2">
+            <Users className="w-3.5 h-3.5 text-[#7968FF]" />
+            <span>Identity & Access Directory</span>
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-heading font-extrabold tracking-tight">
             User Directory & Access Control
           </h1>
-          <p className="text-xs text-slate-500 mt-1">
-            Manage authenticated students, faculty coordinators, and administrative accounts.
+          <p className="text-xs sm:text-sm text-[#A0ABC0] mt-1 max-w-xl">
+            Manage authenticated students, faculty coordinators, and administrative accounts with role-based permissions.
           </p>
         </div>
 
-        <div className="flex gap-2">
+        <div className="flex items-center gap-2 shrink-0">
           <select
             value={filterRole}
             onChange={(e) => setFilterRole(e.target.value)}
-            className="h-9 px-3 rounded-lg border border-slate-200 bg-white text-xs font-semibold"
+            className="h-10 px-3 rounded-[10px] border border-[#1F2C4A] bg-[#10182B] text-xs text-white focus:outline-none focus:ring-2 focus:ring-[#7968FF]"
           >
-            <option value="">All Roles</option>
+            <option value="">All Roles ({users.length})</option>
             <option value="STUDENT">Students</option>
             <option value="FACULTY">Faculty</option>
             <option value="ADMIN">Administrators</option>
@@ -68,14 +73,14 @@ export const AdminUsersPage: React.FC = () => {
         </div>
       </div>
 
-      <Card className="border-slate-200/80 shadow-sm bg-white">
+      <Card>
         <CardContent className="p-0">
           {loading ? (
-            <div className="py-20 text-center text-xs text-slate-400">Loading user accounts...</div>
+            <div className="py-20 text-center text-xs text-[#68758B] dark:text-[#A0ABC0]">Loading user accounts...</div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs text-slate-700">
-                <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase text-[10px] font-bold">
+              <table className="w-full text-left text-xs text-[#172033] dark:text-[#F1F3FA]">
+                <thead className="bg-[#F6F7FB] dark:bg-[#10182B] border-b border-[#E2E8F0] dark:border-[#1F2C4A] text-[#68758B] dark:text-[#A0ABC0] uppercase text-[10px] font-bold">
                   <tr>
                     <th className="px-5 py-3">Full Name & Email</th>
                     <th className="px-5 py-3">Role</th>
@@ -85,12 +90,12 @@ export const AdminUsersPage: React.FC = () => {
                     <th className="px-5 py-3 text-right">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="divide-y divide-[#E2E8F0] dark:divide-[#1F2C4A]">
                   {filtered.map((u) => (
-                    <tr key={u.id} className="hover:bg-slate-50/70">
+                    <tr key={u.id} className="hover:bg-[#F6F7FB]/50 dark:hover:bg-[#10182B]/60 transition-colors">
                       <td className="px-5 py-3.5">
-                        <span className="font-bold text-slate-900 block">{u.full_name}</span>
-                        <span className="text-slate-400 text-[11px]">{u.email}</span>
+                        <span className="font-bold text-[#172033] dark:text-[#F1F3FA] block">{u.full_name}</span>
+                        <span className="text-[#68758B] dark:text-[#A0ABC0] text-[11px]">{u.email}</span>
                       </td>
                       <td className="px-5 py-3.5">
                         <Badge
@@ -100,7 +105,7 @@ export const AdminUsersPage: React.FC = () => {
                           {u.role}
                         </Badge>
                       </td>
-                      <td className="px-5 py-3.5 font-mono text-[11px] text-slate-600">
+                      <td className="px-5 py-3.5 font-mono text-[11px] text-[#68758B] dark:text-[#A0ABC0]">
                         {u.student_id || "—"}
                       </td>
                       <td className="px-5 py-3.5">
@@ -108,7 +113,7 @@ export const AdminUsersPage: React.FC = () => {
                           {u.is_active ? "Active" : "Disabled"}
                         </Badge>
                       </td>
-                      <td className="px-5 py-3.5 text-slate-400 text-[11px]">
+                      <td className="px-5 py-3.5 text-[#68758B] dark:text-[#A0ABC0] text-[11px]">
                         {formatDate(u.created_at)}
                       </td>
                       <td className="px-5 py-3.5 text-right">

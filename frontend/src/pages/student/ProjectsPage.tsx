@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, FolderOpen, Users, Calendar, Clock, AlertCircle } from "lucide-react";
+import { Plus, FolderOpen, Users, Calendar, Clock, AlertCircle, X, Sparkles } from "lucide-react";
 import { apiClient } from "@/services/api";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
@@ -63,76 +63,105 @@ export function ProjectsPage() {
   };
 
   return (
-    <div className="p-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
+    <div className="space-y-6 max-w-7xl mx-auto">
+      {/* Header Banner */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 sm:p-8 rounded-2xl bg-gradient-to-r from-[#10182B] via-[#151D30] to-[#1C2642] border border-[#1F2C4A] text-white shadow-md">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">My Projects</h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-            Manage your research and academic projects
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#5945E8]/20 text-[#A394FF] text-xs font-semibold mb-2">
+            <FolderOpen className="w-3.5 h-3.5 text-[#7968FF]" />
+            <span>Academic Research Workspaces</span>
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-heading font-extrabold tracking-tight">
+            My Research Projects
+          </h1>
+          <p className="text-xs sm:text-sm text-[#A0ABC0] mt-1 max-w-xl">
+            Track multi-week hardware allocation, team members, and milestones for your academic capstone and laboratory studies.
           </p>
         </div>
-        <Button onClick={() => setShowCreate(true)} className="flex items-center gap-2">
-          <Plus className="w-4 h-4" />
-          New Project
+
+        <Button
+          onClick={() => setShowCreate(true)}
+          className="bg-[#5945E8] hover:bg-[#4D39D9] text-white font-semibold text-xs shadow-md shadow-[#5945E8]/20 flex items-center gap-1.5 shrink-0"
+        >
+          <Plus className="w-4 h-4 mr-1" />
+          <span>New Project</span>
         </Button>
       </div>
 
       {/* Create Project Modal */}
       {showCreate && (
-        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-lg p-6">
-            <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-4">Create New Project</h2>
+        <div className="fixed inset-0 z-50 bg-[#080D19]/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-[#151D30] border border-[#E2E8F0] dark:border-[#1F2C4A] rounded-2xl shadow-2xl w-full max-w-lg p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-heading font-bold text-[#172033] dark:text-[#F1F3FA]">Create New Project</h2>
+              <button
+                onClick={() => { setShowCreate(false); setError(""); }}
+                className="text-[#68758B] hover:text-[#172033] dark:hover:text-[#F1F3FA]"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
             <form onSubmit={handleCreate} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                  Project Title
+                <label className="block text-xs font-semibold text-[#172033] dark:text-[#F1F3FA] mb-1">
+                  Project Title *
                 </label>
                 <Input
                   value={form.title}
                   onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
                   placeholder="e.g. Smart Irrigation Network"
+                  className="bg-[#F6F7FB] dark:bg-[#10182B] border-[#E2E8F0] dark:border-[#1F2C4A] text-[#172033] dark:text-[#F1F3FA] text-xs h-10"
                 />
               </div>
+
               <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                  Domain / Technology Area
+                <label className="block text-xs font-semibold text-[#172033] dark:text-[#F1F3FA] mb-1">
+                  Domain / Technology Area *
                 </label>
                 <Input
                   value={form.domain}
                   onChange={e => setForm(f => ({ ...f, domain: e.target.value }))}
                   placeholder="e.g. IoT & Embedded Systems"
+                  className="bg-[#F6F7FB] dark:bg-[#10182B] border-[#E2E8F0] dark:border-[#1F2C4A] text-[#172033] dark:text-[#F1F3FA] text-xs h-10"
                 />
               </div>
+
               <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                  Description
+                <label className="block text-xs font-semibold text-[#172033] dark:text-[#F1F3FA] mb-1">
+                  Description *
                 </label>
                 <textarea
                   value={form.description}
                   onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
                   rows={4}
                   placeholder="Describe your project, goals, and equipment needs..."
-                  className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
+                  className="w-full px-3 py-2 border border-[#E2E8F0] dark:border-[#1F2C4A] rounded-xl bg-[#F6F7FB] dark:bg-[#10182B] text-[#172033] dark:text-[#F1F3FA] placeholder-[#68758B] focus:outline-none focus:ring-2 focus:ring-[#7968FF] text-xs"
                 />
               </div>
+
               {error && (
-                <div className="flex items-center gap-2 text-red-600 dark:text-red-400 text-sm">
-                  <AlertCircle className="w-4 h-4" />
-                  {error}
+                <div className="flex items-center gap-2 text-[#E34E62] dark:text-[#F16B7B] text-xs bg-[#E34E62]/10 p-2.5 rounded-lg border border-[#E34E62]/20">
+                  <AlertCircle className="w-4 h-4 shrink-0" />
+                  <span>{error}</span>
                 </div>
               )}
-              <div className="flex gap-3 pt-2">
-                <Button type="submit" disabled={createMutation.isPending} className="flex-1">
-                  {createMutation.isPending ? "Creating..." : "Create Project"}
-                </Button>
+
+              <div className="flex gap-2 pt-2">
                 <Button
                   type="button"
                   variant="outline"
                   onClick={() => { setShowCreate(false); setError(""); }}
-                  className="flex-1"
+                  className="flex-1 text-xs"
                 >
                   Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={createMutation.isPending}
+                  className="flex-1 bg-[#5945E8] hover:bg-[#4D39D9] text-white text-xs font-semibold"
+                >
+                  {createMutation.isPending ? "Creating..." : "Create Project"}
                 </Button>
               </div>
             </form>
@@ -146,49 +175,47 @@ export function ProjectsPage() {
           {[1, 2, 3].map(i => <SkeletonCard key={i} />)}
         </div>
       ) : !projects || projects.length === 0 ? (
-        <div className="text-center py-16">
-          <FolderOpen className="w-16 h-16 text-slate-300 dark:text-slate-600 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-slate-700 dark:text-slate-300">No projects yet</h3>
-          <p className="text-slate-500 dark:text-slate-400 mt-1 mb-6 text-sm">
-            Create a project to organise your equipment bookings.
+        <Card className="text-center py-16">
+          <FolderOpen className="w-16 h-16 text-[#68758B]/40 mx-auto mb-4" />
+          <h3 className="text-base font-semibold text-[#172033] dark:text-[#F1F3FA]">No projects yet</h3>
+          <p className="text-[#68758B] dark:text-[#A0ABC0] mt-1 mb-6 text-xs max-w-sm mx-auto">
+            Create a project workspace to organise your equipment bookings and collaborate with peers.
           </p>
-          <Button onClick={() => setShowCreate(true)}>
+          <Button onClick={() => setShowCreate(true)} className="bg-[#5945E8] text-white text-xs">
             <Plus className="w-4 h-4 mr-2" />
             Create First Project
           </Button>
-        </div>
+        </Card>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {projects.map(project => (
-            <Card key={project.id} className="p-5 hover:shadow-lg transition-shadow">
-              <div className="flex items-start justify-between mb-3">
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold text-slate-900 dark:text-white truncate">
-                    {project.title}
-                  </h3>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{project.domain}</p>
+            <Card key={project.id} className="p-5 hover:border-[#5945E8]/40 dark:hover:border-[#7968FF]/40 transition-all flex flex-col justify-between">
+              <div>
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-heading font-bold text-sm text-[#172033] dark:text-[#F1F3FA] truncate">
+                      {project.title}
+                    </h3>
+                    <p className="text-[11px] text-[#5945E8] dark:text-[#A394FF] font-medium mt-0.5">{project.domain}</p>
+                  </div>
+                  <Badge variant={STATUS_COLORS[project.status] as any} className="ml-2 shrink-0 text-[10px]">
+                    {project.status}
+                  </Badge>
                 </div>
-                <Badge variant={STATUS_COLORS[project.status] as any} className="ml-2 shrink-0">
-                  {project.status}
-                </Badge>
+
+                <p className="text-xs text-[#68758B] dark:text-[#A0ABC0] line-clamp-3 mb-4">
+                  {project.description}
+                </p>
               </div>
 
-              <p className="text-sm text-slate-600 dark:text-slate-400 line-clamp-2 mb-4">
-                {project.description}
-              </p>
-
-              <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-500 border-t border-slate-100 dark:border-slate-700 pt-3">
+              <div className="flex items-center justify-between text-[11px] text-[#68758B] dark:text-[#A0ABC0] border-t border-[#E2E8F0] dark:border-[#1F2C4A] pt-3">
                 <div className="flex items-center gap-1">
-                  <Users className="w-3.5 h-3.5" />
-                  {project.members?.length ?? 0} member{(project.members?.length ?? 0) !== 1 ? "s" : ""}
+                  <Users className="w-3.5 h-3.5 text-[#5945E8] dark:text-[#7968FF]" />
+                  <span>{project.members?.length || 1} researcher(s)</span>
                 </div>
                 <div className="flex items-center gap-1">
-                  <Calendar className="w-3.5 h-3.5" />
-                  {new Date(project.created_at).toLocaleDateString("en-IN", {
-                    day: "2-digit",
-                    month: "short",
-                    year: "numeric",
-                  })}
+                  <Clock className="w-3.5 h-3.5" />
+                  <span>{new Date(project.created_at).toLocaleDateString()}</span>
                 </div>
               </div>
             </Card>

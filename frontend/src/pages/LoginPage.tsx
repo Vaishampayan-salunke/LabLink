@@ -257,9 +257,11 @@ export const LoginPage: React.FC = () => {
                 <Input
                   type="email"
                   required
+                  autoComplete="username"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="student@college.edu or demo email"
+                  style={{ colorScheme: "dark" }}
                   className="pl-9 bg-[#10182B] border-[#1F2C4A] text-white placeholder:text-[#68758B]"
                 />
               </div>
@@ -282,9 +284,11 @@ export const LoginPage: React.FC = () => {
                 <Input
                   type={showPassword ? "text" : "password"}
                   required
+                  autoComplete="current-password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••••••"
+                  style={{ colorScheme: "dark" }}
                   className="pl-9 pr-10 bg-[#10182B] border-[#1F2C4A] text-white placeholder:text-[#68758B]"
                 />
                 <button

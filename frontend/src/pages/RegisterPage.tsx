@@ -1,12 +1,11 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/features/auth/AuthContext";
 import { api } from "@/services/api";
-import { Department } from "@/types";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/Card";
-import { Cpu, Mail, Lock, User, Hash, Building, ChevronDown, CheckCircle2 } from "lucide-react";
+import { Cpu, Mail, Lock, User, Hash, Building, ChevronDown, Check, CheckCircle2 } from "lucide-react";
 
 interface DeptOption {
   id: string;
@@ -32,8 +31,10 @@ export const RegisterPage: React.FC = () => {
   const [password, setPassword] = useState("");
   const [studentId, setStudentId] = useState("");
   const [departmentId, setDepartmentId] = useState("");
+  const [isDeptOpen, setIsDeptOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const fetchDepts = async () => {
@@ -42,13 +43,28 @@ export const RegisterPage: React.FC = () => {
         if (data && data.length > 0) {
           setDepartments(data);
           setDepartmentId(data[0].id);
+        } else {
+          setDepartmentId(FALLBACK_DEPARTMENTS[0].id);
         }
       } catch {
-        // Keep fallback departments
+        setDepartmentId(FALLBACK_DEPARTMENTS[0].id);
       }
     };
     fetchDepts();
   }, []);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsDeptOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const selectedDepartment = departments.find((d) => d.id === departmentId) || departments[0];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -61,7 +77,7 @@ export const RegisterPage: React.FC = () => {
         email,
         password,
         student_id: studentId,
-        department_id: departmentId || undefined,
+        department_id: departmentId || selectedDepartment?.id,
       });
       navigate("/");
     } catch (err: any) {
@@ -107,9 +123,11 @@ export const RegisterPage: React.FC = () => {
                   <User className="w-4 h-4 absolute left-3 top-3 text-[#68758B]" />
                   <Input
                     required
+                    autoComplete="name"
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
                     placeholder="e.g. Maya Lin"
+                    style={{ colorScheme: "dark" }}
                     className="pl-9 bg-[#10182B] border-[#1F2C4A] text-white placeholder:text-[#68758B]"
                   />
                 </div>
@@ -122,9 +140,11 @@ export const RegisterPage: React.FC = () => {
                   <Input
                     type="email"
                     required
+                    autoComplete="username email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="student@college.edu"
+                    style={{ colorScheme: "dark" }}
                     className="pl-9 bg-[#10182B] border-[#1F2C4A] text-white placeholder:text-[#68758B]"
                   />
                 </div>
@@ -138,29 +158,57 @@ export const RegisterPage: React.FC = () => {
                     value={studentId}
                     onChange={(e) => setStudentId(e.target.value)}
                     placeholder="STU-2026-XXXX"
+                    style={{ colorScheme: "dark" }}
                     className="pl-9 bg-[#10182B] border-[#1F2C4A] text-white placeholder:text-[#68758B]"
                   />
                 </div>
               </div>
 
-              <div>
+              {/* Custom Glitch-Free Dropdown for Academic Department */}
+              <div ref={dropdownRef} className="relative">
                 <label className="block text-xs font-semibold text-[#A0ABC0] mb-1">Academic Department *</label>
-                <div className="relative">
-                  <Building className="w-4 h-4 absolute left-3 top-3.5 text-[#68758B] pointer-events-none" />
-                  <select
-                    value={departmentId}
-                    onChange={(e) => setDepartmentId(e.target.value)}
-                    className="w-full h-10 pl-9 pr-9 rounded-[10px] border border-[#1F2C4A] bg-[#10182B] text-xs sm:text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#7968FF] transition-all appearance-none cursor-pointer"
-                  >
-                    <option value="" disabled>Select your academic department...</option>
-                    {departments.map((d) => (
-                      <option key={d.id} value={d.id} className="bg-[#151D30] text-white py-1">
-                        {d.name} ({d.code})
-                      </option>
-                    ))}
-                  </select>
-                  <ChevronDown className="w-4 h-4 absolute right-3 top-3.5 text-[#68758B] pointer-events-none" />
-                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsDeptOpen(!isDeptOpen)}
+                  className="w-full h-11 px-3 pl-9 pr-9 rounded-[10px] border border-[#1F2C4A] bg-[#10182B] text-left text-xs sm:text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#7968FF] transition-all flex items-center justify-between relative hover:border-[#7968FF]/50"
+                >
+                  <Building className="w-4 h-4 absolute left-3 text-[#68758B]" />
+                  <span className="truncate">
+                    {selectedDepartment ? `${selectedDepartment.name} (${selectedDepartment.code})` : "Select department..."}
+                  </span>
+                  <ChevronDown className={`w-4 h-4 text-[#68758B] transition-transform ${isDeptOpen ? "rotate-180" : ""}`} />
+                </button>
+
+                {isDeptOpen && (
+                  <div className="absolute top-full left-0 right-0 mt-1.5 z-50 bg-[#151D30] border border-[#1F2C4A] rounded-xl shadow-2xl py-1 overflow-hidden">
+                    {departments.map((d) => {
+                      const isSelected = d.id === departmentId;
+                      return (
+                        <button
+                          key={d.id}
+                          type="button"
+                          onClick={() => {
+                            setDepartmentId(d.id);
+                            setIsDeptOpen(false);
+                          }}
+                          className={`w-full px-3.5 py-2.5 text-left text-xs flex items-center justify-between transition-colors ${
+                            isSelected
+                              ? "bg-[#5945E8]/20 text-[#A394FF] font-semibold"
+                              : "text-[#F1F3FA] hover:bg-[#1C2642]"
+                          }`}
+                        >
+                          <div className="flex items-center gap-2 truncate">
+                            <span className="font-bold text-[11px] px-1.5 py-0.5 rounded bg-[#10182B] border border-[#1F2C4A] text-[#7968FF]">
+                              {d.code}
+                            </span>
+                            <span className="truncate">{d.name}</span>
+                          </div>
+                          {isSelected && <Check className="w-3.5 h-3.5 text-[#21C997] shrink-0 ml-2" />}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
 
               <div>
@@ -170,9 +218,11 @@ export const RegisterPage: React.FC = () => {
                   <Input
                     type="password"
                     required
+                    autoComplete="new-password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="Create a strong password"
+                    style={{ colorScheme: "dark" }}
                     className="pl-9 bg-[#10182B] border-[#1F2C4A] text-white placeholder:text-[#68758B]"
                   />
                 </div>

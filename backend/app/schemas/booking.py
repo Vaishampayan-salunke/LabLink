@@ -22,6 +22,7 @@ class BookingCreate(BaseModel):
     start_time: datetime
     end_time: datetime
     purpose: str
+    project_id: Optional[str] = None
     project_title: Optional[str] = None
     project_description: Optional[str] = None
     project_deadline: Optional[datetime] = None

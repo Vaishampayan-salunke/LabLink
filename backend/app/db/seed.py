@@ -1,6 +1,7 @@
 import sys
 import uuid
 from datetime import datetime, timezone, timedelta, time
+from sqlalchemy import text
 from sqlalchemy.orm import Session
 from app.db.base import Base
 from app.db.session import engine, SessionLocal

@@ -38,7 +38,7 @@ def list_equipment(
     status: Optional[EquipmentStatus] = None,
     is_restricted: Optional[bool] = None,
     page: int = Query(1, ge=1),
-    page_size: int = Query(20, ge=1, le=100),
+    page_size: int = Query(100, ge=1, le=100),
     db: Session = Depends(get_db),
 ):
     """
