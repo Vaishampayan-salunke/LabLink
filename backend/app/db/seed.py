@@ -25,6 +25,18 @@ def seed_database():
     """Deterministic database seed for LabLink – 28 equipment items."""
     print("Seeding LabLink database...")
     Base.metadata.create_all(bind=engine)
+    try:
+        with engine.begin() as conn:
+            if conn.dialect.name == "postgresql":
+                conn.execute(text("ALTER TABLE bookings ADD COLUMN IF NOT EXISTS project_id VARCHAR(36);"))
+                conn.execute(text("CREATE INDEX IF NOT EXISTS ix_bookings_project_id ON bookings (project_id);"))
+            elif conn.dialect.name == "sqlite":
+                cols = [row[1] for row in conn.execute(text("PRAGMA table_info(bookings);")).fetchall()]
+                if "project_id" not in cols:
+                    conn.execute(text("ALTER TABLE bookings ADD COLUMN project_id VARCHAR(36);"))
+    except Exception as e:
+        print(f"Schema patch notice: {e}")
+
     db = SessionLocal()
 
     try:
