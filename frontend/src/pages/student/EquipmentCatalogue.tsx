@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import {
   Search,
-  Filter,
   Cpu,
   MapPin,
   ShieldAlert,
@@ -16,6 +15,8 @@ import {
   Clock,
   ArrowRight,
   SlidersHorizontal,
+  Sparkles,
+  Layers,
 } from "lucide-react";
 
 export const EquipmentCatalogue: React.FC = () => {
@@ -75,48 +76,55 @@ export const EquipmentCatalogue: React.FC = () => {
     "Additive Manufacturing",
     "Industrial Automation",
     "Sensor Arrays",
+    "Robotics",
+    "Analytical Instruments",
   ];
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 sm:p-8 rounded-2xl bg-gradient-to-r from-[#10182B] via-[#151D30] to-[#1C2642] border border-[#1F2C4A] text-white shadow-md">
         <div>
-          <h1 className="text-2xl font-extrabold tracking-tight text-slate-900">
-            Laboratory Equipment Catalogue
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#5945E8]/20 text-[#A394FF] text-xs font-semibold mb-2">
+            <Layers className="w-3.5 h-3.5 text-[#7968FF]" />
+            <span>Campus Cross-Department Inventory</span>
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-heading font-extrabold tracking-tight">
+            Explore Laboratory Equipment
           </h1>
-          <p className="text-xs text-slate-500 mt-1">
-            Real-time availability of campus development boards, oscilloscopes, GPU clusters, and tools.
+          <p className="text-xs sm:text-sm text-[#A0ABC0] mt-1 max-w-xl">
+            Discover specialized development kits, workstations, and high-precision instruments across all 5 engineering departments.
           </p>
         </div>
 
         <Button
           onClick={() => navigate("/student/assistant")}
-          className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold self-start md:self-auto text-xs"
+          className="bg-[#5945E8] hover:bg-[#4D39D9] text-white font-semibold text-xs shadow-md shadow-[#5945E8]/20 flex items-center gap-1.5 shrink-0"
         >
-          Match with AI Project Assistant
+          <Sparkles className="w-3.5 h-3.5" />
+          <span>Match with AI Assistant</span>
         </Button>
       </div>
 
       {/* Search and Filters Bar */}
-      <Card className="border-slate-200/80 shadow-sm">
+      <Card>
         <CardContent className="p-4">
           <form onSubmit={handleSearchSubmit} className="flex flex-col md:flex-row gap-3">
             <div className="relative flex-1">
-              <Search className="w-4 h-4 absolute left-3 top-3 text-slate-400" />
+              <Search className="w-4 h-4 absolute left-3.5 top-3 text-[#68758B] dark:text-[#A0ABC0]" />
               <Input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search by equipment name, specification, model number (e.g. ESP32, RTX 4090)..."
-                className="pl-9 text-xs"
+                placeholder="Search by equipment name, model number, specifications (e.g. ESP32, FPGA, RTX 4090)..."
+                className="pl-10 text-xs sm:text-sm"
               />
             </div>
 
-            <div className="flex gap-2">
+            <div className="flex flex-wrap sm:flex-nowrap gap-2">
               <select
                 value={selectedDept}
                 onChange={(e) => setSelectedDept(e.target.value)}
-                className="h-10 px-3 rounded-lg border border-slate-200 bg-white text-xs text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="h-10 px-3 rounded-[10px] border border-[#E2E8F0] dark:border-[#1F2C4A] bg-white dark:bg-[#10182B] text-xs text-[#172033] dark:text-[#F1F3FA] focus:outline-none focus:ring-2 focus:ring-[#5945E8]"
               >
                 <option value="">All Departments</option>
                 {departments.map((d) => (
@@ -131,7 +139,7 @@ export const EquipmentCatalogue: React.FC = () => {
                 onChange={(e) =>
                   setSelectedCategory(e.target.value === "All Categories" ? "" : e.target.value)
                 }
-                className="h-10 px-3 rounded-lg border border-slate-200 bg-white text-xs text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="h-10 px-3 rounded-[10px] border border-[#E2E8F0] dark:border-[#1F2C4A] bg-white dark:bg-[#10182B] text-xs text-[#172033] dark:text-[#F1F3FA] focus:outline-none focus:ring-2 focus:ring-[#5945E8]"
               >
                 {categories.map((c) => (
                   <option key={c} value={c}>
@@ -141,7 +149,7 @@ export const EquipmentCatalogue: React.FC = () => {
               </select>
 
               <Button type="submit" variant="secondary" size="sm" className="h-10 text-xs px-4">
-                Apply Filters
+                Filter
               </Button>
             </div>
           </form>
@@ -151,15 +159,15 @@ export const EquipmentCatalogue: React.FC = () => {
       {/* Equipment Grid */}
       {loading ? (
         <div className="py-20 text-center">
-          <div className="w-8 h-8 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-          <p className="text-xs text-slate-500 font-medium">Fetching laboratory equipment records...</p>
+          <div className="w-8 h-8 border-2 border-[#5945E8] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+          <p className="text-xs text-[#68758B] dark:text-[#A0ABC0] font-medium">Fetching laboratory equipment records...</p>
         </div>
       ) : equipmentList.length === 0 ? (
-        <div className="py-20 text-center bg-white rounded-xl border border-slate-200">
-          <Cpu className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-          <h3 className="text-sm font-semibold text-slate-800">No equipment found</h3>
-          <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
-            Try adjusting your search keywords or resetting your department filter.
+        <Card className="py-20 text-center">
+          <Cpu className="w-12 h-12 text-[#68758B]/40 mx-auto mb-3" />
+          <h3 className="text-sm font-semibold text-[#172033] dark:text-[#F1F3FA]">No equipment matches criteria</h3>
+          <p className="text-xs text-[#68758B] dark:text-[#A0ABC0] mt-1 max-w-sm mx-auto">
+            Try adjusting your search terms or clearing your department filter.
           </p>
           <Button
             size="sm"
@@ -174,7 +182,7 @@ export const EquipmentCatalogue: React.FC = () => {
           >
             Reset Filters
           </Button>
-        </div>
+        </Card>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {equipmentList.map((eq) => {
@@ -182,10 +190,10 @@ export const EquipmentCatalogue: React.FC = () => {
             return (
               <Card
                 key={eq.id}
-                className="border-slate-200/80 shadow-sm hover:shadow-md transition-all overflow-hidden flex flex-col group bg-white"
+                className="hover:border-[#5945E8]/40 dark:hover:border-[#7968FF]/40 hover:shadow-card-hover transition-all overflow-hidden flex flex-col group"
               >
-                {/* Equipment Image or fallback */}
-                <div className="h-44 bg-slate-900 relative overflow-hidden">
+                {/* Equipment Photograph */}
+                <div className="h-44 bg-[#080D19] relative overflow-hidden">
                   {eq.image_url ? (
                     <img
                       src={eq.image_url}
@@ -193,81 +201,63 @@ export const EquipmentCatalogue: React.FC = () => {
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-slate-950 text-indigo-400">
+                    <div className="w-full h-full flex items-center justify-center bg-[#080D19] text-[#7968FF]">
                       <Cpu className="w-12 h-12 opacity-40" />
                     </div>
                   )}
 
-                  <div className="absolute top-3 left-3 flex gap-1.5 flex-wrap">
-                    <Badge variant="outline" className="bg-slate-900/80 text-white border-slate-700 backdrop-blur-md text-[10px]">
-                      {eq.category}
+                  {/* Top Status Overlays */}
+                  <div className="absolute top-3 left-3 flex gap-2">
+                    <Badge variant={isAvailable ? "success" : "destructive"}>
+                      {isAvailable ? "Available" : eq.status}
                     </Badge>
+                    {eq.is_restricted && (
+                      <Badge variant="warning" className="text-[10px]">
+                        Approval Required
+                      </Badge>
+                    )}
                   </div>
-
-                  <div className="absolute top-3 right-3">
-                    <Badge
-                      variant={isAvailable ? "success" : "destructive"}
-                      className="backdrop-blur-md text-[10px] font-bold"
-                    >
-                      {eq.status}
-                    </Badge>
-                  </div>
-
-                  {eq.is_restricted && (
-                    <div className="absolute bottom-3 left-3 bg-amber-500/90 text-white text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 backdrop-blur-md">
-                      <ShieldAlert className="w-3 h-3" />
-                      <span>Restricted Gear (Faculty Approval Required)</span>
-                    </div>
-                  )}
                 </div>
 
-                {/* Content */}
-                <CardContent className="p-5 flex-1 flex flex-col justify-between">
-                  <div>
-                    <h3 className="font-bold text-slate-900 text-sm group-hover:text-indigo-600 transition-colors line-clamp-1">
+                {/* Card Content Body */}
+                <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
+                  <div className="space-y-1.5">
+                    <div className="flex items-center gap-2 text-[11px] text-[#5945E8] dark:text-[#A394FF] font-semibold">
+                      <span>{eq.category}</span>
+                      <span>•</span>
+                      <span>{eq.department_name}</span>
+                    </div>
+
+                    <h3 className="font-heading font-bold text-base text-[#172033] dark:text-[#F1F3FA] line-clamp-1 group-hover:text-[#5945E8] dark:group-hover:text-[#7968FF] transition-colors">
                       {eq.name}
                     </h3>
 
-                    <div className="flex items-center gap-1.5 text-xs text-slate-500 mt-1">
-                      <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                      <span className="truncate">
-                        {eq.department_name} • {eq.laboratory_name}
+                    <p className="text-xs text-[#68758B] dark:text-[#A0ABC0] line-clamp-2 leading-relaxed">
+                      {eq.description}
+                    </p>
+                  </div>
+
+                  <div className="pt-3 border-t border-[#E2E8F0] dark:border-[#1F2C4A] space-y-3">
+                    <div className="flex items-center justify-between text-xs text-[#68758B] dark:text-[#A0ABC0]">
+                      <span className="flex items-center gap-1">
+                        <MapPin className="w-3.5 h-3.5 text-[#68758B]" />
+                        <span>{eq.laboratory_name || "Central Lab"}</span>
+                      </span>
+                      <span className="font-semibold text-[#172033] dark:text-[#F1F3FA] tabular-nums">
+                        {eq.available_quantity}/{eq.total_quantity} Free
                       </span>
                     </div>
 
-                    <p className="text-xs text-slate-600 mt-2.5 line-clamp-2 leading-relaxed">
-                      {eq.description}
-                    </p>
-
-                    {/* Specs Pills */}
-                    {eq.specifications && eq.specifications.length > 0 && (
-                      <div className="mt-3 flex flex-wrap gap-1.5">
-                        {eq.specifications.slice(0, 3).map((s) => (
-                          <span
-                            key={s.id}
-                            className="inline-flex items-center text-[10px] bg-slate-100 text-slate-700 px-2 py-0.5 rounded-md font-medium"
-                          >
-                            <span className="font-semibold text-slate-900 mr-1">{s.spec_name}:</span> {s.spec_value}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="mt-5 pt-3 border-t border-slate-100 flex items-center justify-between">
-                    <div className="text-[11px] text-slate-500">
-                      Units: <span className="font-bold text-slate-900">{eq.available_quantity}/{eq.total_quantity}</span>
-                    </div>
                     <Button
                       size="sm"
                       onClick={() => navigate(`/student/equipment/${eq.id}`)}
-                      className="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold h-8"
+                      className="w-full text-xs font-semibold h-9 flex items-center justify-center gap-1.5"
                     >
-                      <span>Check & Reserve</span>
-                      <ArrowRight className="w-3 h-3 ml-1.5" />
+                      <span>View Specifications & Book</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
                     </Button>
                   </div>
-                </CardContent>
+                </div>
               </Card>
             );
           })}
