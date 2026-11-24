@@ -16,21 +16,30 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(() => {
-    const saved = localStorage.getItem("lablink_user");
+    // Check per-tab sessionStorage first so multiple tabs run isolated personas
+    const saved = sessionStorage.getItem("lablink_user") || localStorage.getItem("lablink_user");
     return saved ? JSON.parse(saved) : null;
   });
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   useEffect(() => {
     const checkAuth = async () => {
-      const token = localStorage.getItem("lablink_access_token");
+      // Prioritize per-tab sessionStorage
+      const token = sessionStorage.getItem("lablink_access_token") || localStorage.getItem("lablink_access_token");
       if (token) {
         try {
           const profile = await api.getCurrentUser();
           setUser(profile);
-          localStorage.setItem("lablink_user", JSON.stringify(profile));
+          sessionStorage.setItem("lablink_user", JSON.stringify(profile));
+          // If this tab was relying on fallback, capture it in sessionStorage
+          const activeAccessToken = sessionStorage.getItem("lablink_access_token") || localStorage.getItem("lablink_access_token");
+          if (activeAccessToken) sessionStorage.setItem("lablink_access_token", activeAccessToken);
+          const activeRefreshToken = sessionStorage.getItem("lablink_refresh_token") || localStorage.getItem("lablink_refresh_token");
+          if (activeRefreshToken) sessionStorage.setItem("lablink_refresh_token", activeRefreshToken);
         } catch {
           setUser(null);
+          sessionStorage.removeItem("lablink_access_token");
+          sessionStorage.removeItem("lablink_user");
           localStorage.removeItem("lablink_access_token");
           localStorage.removeItem("lablink_user");
         }
@@ -47,11 +56,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsLoading(true);
     try {
       const response = await api.login({ email, password });
+      // Store in this tab's isolated sessionStorage
+      sessionStorage.setItem("lablink_access_token", response.access_token);
+      if (response.refresh_token) {
+        sessionStorage.setItem("lablink_refresh_token", response.refresh_token);
+      }
+      sessionStorage.setItem("lablink_user", JSON.stringify(response.user));
+
+      // Also set localStorage for newly opened tabs
       localStorage.setItem("lablink_access_token", response.access_token);
       if (response.refresh_token) {
         localStorage.setItem("lablink_refresh_token", response.refresh_token);
       }
       localStorage.setItem("lablink_user", JSON.stringify(response.user));
+
       setUser(response.user);
       return response.user;
     } finally {

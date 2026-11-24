@@ -21,39 +21,40 @@ export const ApprovalsPage: React.FC = () => {
   const [historyList, setHistoryList] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionInProgress, setActionInProgress] = useState<string | null>(null);
+  const [scope, setScope] = useState<"department" | "all">("department");
 
   // Reject modal state
   const [rejectingBooking, setRejectingBooking] = useState<Booking | null>(null);
   const [rejectionReason, setRejectionReason] = useState("");
   const [rejectError, setRejectError] = useState<string | null>(null);
 
-  const fetchPending = async () => {
+  const fetchPending = async (activeScope = scope) => {
     try {
-      const data = await api.getPendingApprovals();
+      const data = await api.getPendingApprovals(activeScope);
       setPendingList(data);
     } catch (e) {
       console.error(e);
     }
   };
 
-  const fetchHistory = async () => {
+  const fetchHistory = async (activeScope = scope) => {
     try {
-      const data = await api.getFacultyHistory();
+      const data = await api.getFacultyHistory(activeScope);
       setHistoryList(data);
     } catch (e) {
       console.error(e);
     }
   };
 
-  const refreshAll = async () => {
+  const refreshAll = async (activeScope = scope) => {
     setLoading(true);
-    await Promise.all([fetchPending(), fetchHistory()]);
+    await Promise.all([fetchPending(activeScope), fetchHistory(activeScope)]);
     setLoading(false);
   };
 
   useEffect(() => {
-    refreshAll();
-  }, []);
+    refreshAll(scope);
+  }, [scope]);
 
   const handleApprove = async (booking: Booking) => {
     setActionInProgress(booking.id);
@@ -112,30 +113,55 @@ export const ApprovalsPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="flex border-b border-[#E2E8F0] dark:border-[#1F2C4A] gap-6 text-xs font-semibold">
-        <button
-          onClick={() => setActiveTab("PENDING")}
-          className={`pb-3 transition-colors relative flex items-center gap-2 ${
-            activeTab === "PENDING"
-              ? "text-[#5945E8] dark:text-[#7968FF] border-b-2 border-[#5945E8] dark:border-[#7968FF]"
-              : "text-[#68758B] dark:text-[#A0ABC0] hover:text-[#172033] dark:hover:text-[#F1F3FA]"
-          }`}
-        >
-          <FileCheck2 className="w-4 h-4" />
-          Pending Reviews ({pendingList.length})
-        </button>
-        <button
-          onClick={() => setActiveTab("HISTORY")}
-          className={`pb-3 transition-colors relative flex items-center gap-2 ${
-            activeTab === "HISTORY"
-              ? "text-[#5945E8] dark:text-[#7968FF] border-b-2 border-[#5945E8] dark:border-[#7968FF]"
-              : "text-[#68758B] dark:text-[#A0ABC0] hover:text-[#172033] dark:hover:text-[#F1F3FA]"
-          }`}
-        >
-          <History className="w-4 h-4" />
-          Approval History & Logs ({historyList.length})
-        </button>
+      {/* Tabs and Scope Selector */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#E2E8F0] dark:border-[#1F2C4A] pb-3 text-xs font-semibold">
+        <div className="flex items-center gap-6">
+          <button
+            onClick={() => setActiveTab("PENDING")}
+            className={`transition-colors relative flex items-center gap-2 pb-1 ${
+              activeTab === "PENDING"
+                ? "text-[#5945E8] dark:text-[#7968FF] border-b-2 border-[#5945E8] dark:border-[#7968FF]"
+                : "text-[#68758B] dark:text-[#A0ABC0] hover:text-[#172033] dark:hover:text-[#F1F3FA]"
+            }`}
+          >
+            <FileCheck2 className="w-4 h-4" />
+            Pending Reviews ({pendingList.length})
+          </button>
+          <button
+            onClick={() => setActiveTab("HISTORY")}
+            className={`transition-colors relative flex items-center gap-2 pb-1 ${
+              activeTab === "HISTORY"
+                ? "text-[#5945E8] dark:text-[#7968FF] border-b-2 border-[#5945E8] dark:border-[#7968FF]"
+                : "text-[#68758B] dark:text-[#A0ABC0] hover:text-[#172033] dark:hover:text-[#F1F3FA]"
+            }`}
+          >
+            <History className="w-4 h-4" />
+            Approval History & Logs ({historyList.length})
+          </button>
+        </div>
+
+        <div className="flex items-center gap-1.5 p-1 rounded-xl bg-[#F6F7FB] dark:bg-[#10182B] border border-[#E2E8F0] dark:border-[#1F2C4A]">
+          <button
+            onClick={() => setScope("department")}
+            className={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition-all ${
+              scope === "department"
+                ? "bg-white dark:bg-[#151D30] text-[#5945E8] dark:text-[#7968FF] shadow-sm font-semibold"
+                : "text-[#68758B] dark:text-[#A0ABC0] hover:text-[#172033] dark:hover:text-white"
+            }`}
+          >
+            My Department Equipment
+          </button>
+          <button
+            onClick={() => setScope("all")}
+            className={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition-all ${
+              scope === "all"
+                ? "bg-white dark:bg-[#151D30] text-[#5945E8] dark:text-[#7968FF] shadow-sm font-semibold"
+                : "text-[#68758B] dark:text-[#A0ABC0] hover:text-[#172033] dark:hover:text-white"
+            }`}
+          >
+            All Campus Facilities
+          </button>
+        </div>
       </div>
 
       {loading ? (

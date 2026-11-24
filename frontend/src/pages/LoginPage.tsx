@@ -21,6 +21,14 @@ import {
   Layers,
 } from "lucide-react";
 
+const FACULTY_PERSONAS: Record<string, { email: string; name: string; dept: string }> = {
+  ECE: { email: "faculty.ece@lablink.demo", name: "Prof. Rostova", dept: "ECE Coordinator" },
+  CSE: { email: "faculty.cse@lablink.demo", name: "Prof. Chen", dept: "CSE Coordinator" },
+  EEE: { email: "faculty.eee@lablink.demo", name: "Prof. Okonkwo", dept: "EEE Coordinator" },
+  MECH: { email: "faculty.mech@lablink.demo", name: "Prof. Vance", dept: "MECH Coordinator" },
+  BIO: { email: "faculty.bio@lablink.demo", name: "Dr. Thorne", dept: "BIO Coordinator" },
+};
+
 export const LoginPage: React.FC = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -31,6 +39,7 @@ export const LoginPage: React.FC = () => {
   const [rememberMe, setRememberMe] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [facultyDept, setFacultyDept] = useState<"ECE" | "CSE" | "EEE" | "MECH" | "BIO">("ECE");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -202,22 +211,43 @@ export const LoginPage: React.FC = () => {
                 <p className="text-[9px] text-[#A0ABC0] truncate">STU-2026-081</p>
               </button>
 
-              <button
-                type="button"
-                onClick={() => handleQuickSignIn("faculty.ece@lablink.demo", "LabLink@Faculty2026")}
-                disabled={isLoading}
-                className="p-2.5 rounded-lg bg-[#151D30] hover:bg-[#1E2943] border border-[#243252] text-left transition-all group hover:border-[#7968FF]/50"
-              >
-                <div className="flex items-center justify-between text-[#A394FF] font-semibold text-xs mb-1">
-                  <div className="flex items-center gap-1">
-                    <UserCheck className="w-3.5 h-3.5" />
-                    <span>Faculty</span>
+              <div className="p-2.5 rounded-lg bg-[#151D30] hover:bg-[#1E2943] border border-[#243252] text-left transition-all group hover:border-[#7968FF]/50 flex flex-col justify-between">
+                <button
+                  type="button"
+                  onClick={() => handleQuickSignIn(FACULTY_PERSONAS[facultyDept].email, "LabLink@Faculty2026")}
+                  disabled={isLoading}
+                  className="w-full text-left"
+                >
+                  <div className="flex items-center justify-between text-[#A394FF] font-semibold text-xs mb-1">
+                    <div className="flex items-center gap-1">
+                      <UserCheck className="w-3.5 h-3.5" />
+                      <span>Faculty</span>
+                    </div>
+                    <ArrowRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
                   </div>
-                  <ArrowRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <p className="text-[10px] text-white font-medium truncate">{FACULTY_PERSONAS[facultyDept].name}</p>
+                  <p className="text-[9px] text-[#A0ABC0] truncate">{FACULTY_PERSONAS[facultyDept].dept}</p>
+                </button>
+                <div className="mt-2 pt-1.5 border-t border-[#202B45] flex items-center justify-between gap-1">
+                  {(["ECE", "CSE", "EEE", "MECH", "BIO"] as const).map((d) => (
+                    <button
+                      key={d}
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setFacultyDept(d);
+                      }}
+                      className={`px-1 py-0.5 text-[8px] font-bold rounded transition-colors ${
+                        facultyDept === d
+                          ? "bg-[#5945E8] text-white"
+                          : "bg-[#10182B] text-[#A0ABC0] hover:text-white"
+                      }`}
+                    >
+                      {d}
+                    </button>
+                  ))}
                 </div>
-                <p className="text-[10px] text-white font-medium truncate">Prof. Rostova</p>
-                <p className="text-[9px] text-[#A0ABC0] truncate">ECE Coordinator</p>
-              </button>
+              </div>
 
               <button
                 type="button"

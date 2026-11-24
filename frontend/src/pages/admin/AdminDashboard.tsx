@@ -31,6 +31,16 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
+const getDeptShortName = (name: string): string => {
+  if (!name) return "";
+  if (name.includes("Computer") || name.includes("CSE")) return "CSE";
+  if (name.includes("Communication") || name.includes("ECE")) return "ECE";
+  if (name.includes("Electrical") || name.includes("EEE")) return "EEE";
+  if (name.includes("Mechanical") || name.includes("Robotics") || name.includes("MECH")) return "MECH";
+  if (name.includes("Bio") || name.includes("BIO")) return "BIO";
+  return name.length > 10 ? `${name.slice(0, 8)}..` : name;
+};
+
 export const AdminDashboard: React.FC = () => {
   const [analytics, setAnalytics] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -261,17 +271,20 @@ export const AdminDashboard: React.FC = () => {
                         <stop offset="95%" stopColor="#5945E8" stopOpacity={0.0} />
                       </linearGradient>
                     </defs>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" strokeOpacity={0.6} />
-                    <XAxis dataKey="date" tick={{ fontSize: 11, fill: "#68758B" }} stroke="#E2E8F0" />
-                    <YAxis allowDecimals={false} tick={{ fontSize: 11, fill: "#68758B" }} stroke="#E2E8F0" />
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#1F2C4A" strokeOpacity={0.4} />
+                    <XAxis dataKey="date" tick={{ fontSize: 11, fill: "#A0ABC0" }} stroke="#1F2C4A" />
+                    <YAxis allowDecimals={false} tick={{ fontSize: 11, fill: "#A0ABC0" }} stroke="#1F2C4A" />
                     <Tooltip
+                      cursor={{ stroke: "#5945E8", strokeWidth: 1.5, strokeDasharray: "3 3" }}
                       contentStyle={{
                         backgroundColor: "#151D30",
-                        borderColor: "#202B45",
+                        borderColor: "#1F2C4A",
                         color: "#F1F3FA",
                         borderRadius: "10px",
                         fontSize: "12px",
+                        boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.5)",
                       }}
+                      formatter={(value: any) => [value, "Bookings"]}
                     />
                     <Area
                       type="monotone"
@@ -303,20 +316,35 @@ export const AdminDashboard: React.FC = () => {
             ) : (
               <div className="h-64 pt-2">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={analytics?.department_utilization || []}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" strokeOpacity={0.6} />
-                    <XAxis dataKey="category_or_dept" tick={{ fontSize: 10, fill: "#68758B" }} stroke="#E2E8F0" />
-                    <YAxis domain={[0, 100]} tick={{ fontSize: 11, fill: "#68758B" }} stroke="#E2E8F0" />
+                  <BarChart data={analytics?.department_utilization || []} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#1F2C4A" strokeOpacity={0.4} />
+                    <XAxis
+                      dataKey="category_or_dept"
+                      tickFormatter={getDeptShortName}
+                      interval={0}
+                      tick={{ fontSize: 11, fill: "#A0ABC0", fontWeight: 600 }}
+                      stroke="#1F2C4A"
+                    />
+                    <YAxis
+                      domain={[0, 100]}
+                      tick={{ fontSize: 11, fill: "#A0ABC0" }}
+                      stroke="#1F2C4A"
+                      tickFormatter={(val) => `${val}%`}
+                    />
                     <Tooltip
+                      cursor={false}
                       contentStyle={{
                         backgroundColor: "#151D30",
-                        borderColor: "#202B45",
+                        borderColor: "#1F2C4A",
                         color: "#F1F3FA",
                         borderRadius: "10px",
                         fontSize: "12px",
+                        boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.5)",
                       }}
+                      formatter={(value: any) => [`${value}%`, "Utilization Rate"]}
+                      labelFormatter={(label: any) => `${label}`}
                     />
-                    <Bar dataKey="utilization_rate" fill="#7968FF" radius={[6, 6, 0, 0]} />
+                    <Bar dataKey="utilization_rate" fill="#7968FF" radius={[6, 6, 0, 0]} maxBarSize={44} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>

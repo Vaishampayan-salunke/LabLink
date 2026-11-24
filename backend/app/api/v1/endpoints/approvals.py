@@ -19,13 +19,14 @@ router = APIRouter()
 
 @router.get("/pending", response_model=List[BookingOut])
 def get_pending_approvals(
-    scope: Optional[str] = Query("all", description="Scope of approvals: 'department' or 'all'"),
+    scope: Optional[str] = Query("department", description="Scope of approvals: 'department' or 'all'"),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_faculty),
 ):
     """
-    Retrieve all pending booking requests for the faculty member's department equipment.
-    If scope is 'all' or no department-specific requests exist, campus-wide requests are shown.
+    Retrieve pending booking requests.
+    For faculty coordinators, default scope ('department') filters specifically to equipment
+    belonging to their academic department, ensuring requests route to the proper department faculty.
     Administrators view all institution-wide pending requests.
     """
     query = (
@@ -39,7 +40,7 @@ def get_pending_approvals(
         .filter(Booking.status == BookingStatus.PENDING)
     )
 
-    if current_user.role == UserRole.FACULTY and scope == "department" and current_user.department_id:
+    if current_user.role == UserRole.FACULTY and scope != "all" and current_user.department_id:
         dept_equipment_ids = [
             e.id for e in db.query(Equipment.id).filter(Equipment.department_id == current_user.department_id).all()
         ]
@@ -64,6 +65,7 @@ def get_pending_approvals(
 
 @router.get("/history", response_model=List[BookingOut])
 def get_faculty_history(
+    scope: Optional[str] = Query("department", description="Scope of history: 'department' or 'all'"),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_faculty),
 ):
@@ -87,11 +89,15 @@ def get_faculty_history(
             BookingStatus.CHECKED_OUT,
             BookingStatus.RETURNED,
         ]))
-        .order_by(desc(Booking.updated_at))
-        .limit(60)
     )
 
-    history_bookings = query.all()
+    if current_user.role == UserRole.FACULTY and scope != "all" and current_user.department_id:
+        dept_equipment_ids = [
+            e.id for e in db.query(Equipment.id).filter(Equipment.department_id == current_user.department_id).all()
+        ]
+        query = query.filter(Booking.equipment_id.in_(dept_equipment_ids))
+
+    history_bookings = query.order_by(desc(Booking.updated_at)).limit(60).all()
     result: List[BookingOut] = []
     for b in history_bookings:
         out = BookingOut.model_validate(b)

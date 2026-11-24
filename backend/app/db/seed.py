@@ -91,6 +91,8 @@ def seed_database():
         faculty_ece = get_or_create_user("faculty.ece@lablink.demo", "LabLink@Faculty2026", "Prof. Elena Rostova", UserRole.FACULTY, dept_ece.id)
         faculty_cse = get_or_create_user("faculty.cse@lablink.demo", "LabLink@Faculty2026", "Prof. David Chen", UserRole.FACULTY, dept_cse.id)
         faculty_eee = get_or_create_user("faculty.eee@lablink.demo", "LabLink@Faculty2026", "Prof. Sarah Okonkwo", UserRole.FACULTY, dept_eee.id)
+        faculty_mech = get_or_create_user("faculty.mech@lablink.demo", "LabLink@Faculty2026", "Prof. Marcus Vance", UserRole.FACULTY, dept_mech.id)
+        faculty_bio = get_or_create_user("faculty.bio@lablink.demo", "LabLink@Faculty2026", "Dr. Aris Thorne", UserRole.FACULTY, dept_bio.id)
         student_alex = get_or_create_user("student.alex@lablink.demo", "LabLink@Student2026", "Alex Rivera", UserRole.STUDENT, dept_ece.id, "STU-2026-081")
         student_priya = get_or_create_user("student.priya@lablink.demo", "LabLink@Student2026", "Priya Sharma", UserRole.STUDENT, dept_cse.id, "STU-2026-142")
         student_jordan = get_or_create_user("student.jordan@lablink.demo", "LabLink@Student2026", "Jordan Hayes", UserRole.STUDENT, dept_mech.id, "STU-2026-219")
@@ -116,9 +118,9 @@ def seed_database():
 
         lab_iot = get_or_create_lab(dept_ece.id, "Advanced IoT & Embedded Systems Lab", "ECE-302", "Edison Hall", "08:30 - 18:30", faculty_ece.id)
         lab_ai = get_or_create_lab(dept_cse.id, "AI & High-Performance Computing Lab", "CSE-415", "Turing Complex", "08:00 - 20:00", faculty_cse.id)
-        lab_robotics = get_or_create_lab(dept_mech.id, "Robotics & Digital Prototyping Lab", "ME-108", "Faraday Pavilion", "09:00 - 17:30")
-        lab_instrumentation = get_or_create_lab(dept_eee.id, "Precision Instrumentation & Measurements Lab", "EEE-204", "Tesla Tower", "08:30 - 18:00")
-        lab_bio = get_or_create_lab(dept_bio.id, "Bioprocess & Analytical Chemistry Lab", "BIO-101", "Franklin Science Centre", "09:00 - 17:00")
+        lab_robotics = get_or_create_lab(dept_mech.id, "Robotics & Digital Prototyping Lab", "ME-108", "Faraday Pavilion", "09:00 - 17:30", faculty_mech.id)
+        lab_instrumentation = get_or_create_lab(dept_eee.id, "Precision Instrumentation & Measurements Lab", "EEE-204", "Tesla Tower", "08:30 - 18:00", faculty_eee.id)
+        lab_bio = get_or_create_lab(dept_bio.id, "Bioprocess & Analytical Chemistry Lab", "BIO-101", "Franklin Science Centre", "09:00 - 17:00", faculty_bio.id)
         lab_vlsi = get_or_create_lab(dept_ece.id, "VLSI Design & Verification Lab", "ECE-205", "Edison Hall", "09:00 - 18:00", faculty_ece.id)
 
         # ------------------------------------------------------------------ #

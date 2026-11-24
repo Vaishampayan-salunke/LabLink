@@ -112,6 +112,8 @@ def login(
                 "faculty.ece@lablink.demo": ["lablink@faculty2026"],
                 "faculty.cse@lablink.demo": ["lablink@faculty2026"],
                 "faculty.eee@lablink.demo": ["lablink@faculty2026"],
+                "faculty.mech@lablink.demo": ["lablink@faculty2026"],
+                "faculty.bio@lablink.demo": ["lablink@faculty2026"],
                 "student.alex@lablink.demo": ["lablink@student2026"],
                 "student.priya@lablink.demo": ["lablink@student2026"],
                 "student.jordan@lablink.demo": ["lablink@student2026"],

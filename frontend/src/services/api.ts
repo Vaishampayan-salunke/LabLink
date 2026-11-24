@@ -27,7 +27,8 @@ const API_BASE = getApiBase();
 
 class ApiClient {
   private getAuthHeader(): HeadersInit {
-    const token = localStorage.getItem("lablink_access_token");
+    // Prioritize per-tab sessionStorage for multi-tab persona isolation
+    const token = sessionStorage.getItem("lablink_access_token") || localStorage.getItem("lablink_access_token");
     return token ? { Authorization: `Bearer ${token}` } : {};
   }
 
@@ -42,8 +43,8 @@ class ApiClient {
     const response = await fetch(url, { ...options, headers });
 
     if (response.status === 401) {
-      // Attempt token refresh if available
-      const refreshToken = localStorage.getItem("lablink_refresh_token");
+      // Attempt token refresh if available (per-tab first)
+      const refreshToken = sessionStorage.getItem("lablink_refresh_token") || localStorage.getItem("lablink_refresh_token");
       if (refreshToken && !endpoint.includes("/auth/refresh")) {
         try {
           const refreshRes = await fetch(`${API_BASE}/auth/refresh`, {
@@ -53,8 +54,10 @@ class ApiClient {
           });
           if (refreshRes.ok) {
             const data = await refreshRes.json();
+            sessionStorage.setItem("lablink_access_token", data.access_token);
             localStorage.setItem("lablink_access_token", data.access_token);
             if (data.refresh_token) {
+              sessionStorage.setItem("lablink_refresh_token", data.refresh_token);
               localStorage.setItem("lablink_refresh_token", data.refresh_token);
             }
             // Retry original request
@@ -104,6 +107,9 @@ class ApiClient {
     try {
       await this.request("/auth/logout", { method: "POST" });
     } finally {
+      sessionStorage.removeItem("lablink_access_token");
+      sessionStorage.removeItem("lablink_refresh_token");
+      sessionStorage.removeItem("lablink_user");
       localStorage.removeItem("lablink_access_token");
       localStorage.removeItem("lablink_refresh_token");
       localStorage.removeItem("lablink_user");
@@ -195,12 +201,14 @@ class ApiClient {
   }
 
   // Approvals (Faculty)
-  async getPendingApprovals(): Promise<Booking[]> {
-    return this.request("/approvals/pending");
+  async getPendingApprovals(scope?: string): Promise<Booking[]> {
+    const query = scope ? `?scope=${scope}` : "";
+    return this.request(`/approvals/pending${query}`);
   }
 
-  async getFacultyHistory(): Promise<Booking[]> {
-    return this.request("/approvals/history");
+  async getFacultyHistory(scope?: string): Promise<Booking[]> {
+    const query = scope ? `?scope=${scope}` : "";
+    return this.request(`/approvals/history${query}`);
   }
 
   async approveBooking(id: string, comments?: string): Promise<Booking> {
